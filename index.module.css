@@ -1,0 +1,215 @@
+/**
+ * FACE OF EARTH v0.1 - Styling
+ */
+
+.container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  background: #0a0a0a;
+}
+
+.loadingContainer,
+.errorContainer {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: #0a0a0a;
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.loadingContainer h1,
+.errorContainer h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #ff6b6b, #ffa500);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.loadingContainer p,
+.errorContainer p {
+  font-size: 1.2rem;
+  color: #999;
+}
+
+/* Info Panel */
+.infoPanel {
+  position: fixed;
+  right: 0;
+  top: 0;
+  height: 100vh;
+  width: 400px;
+  background: rgba(10, 10, 10, 0.95);
+  border-left: 1px solid #333;
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow-y: auto;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  z-index: 1000;
+}
+
+.infoPanel.open {
+  transform: translateX(0);
+}
+
+.toggleButton {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff6b6b, #ffa500);
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  z-index: 999;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(255, 107, 107, 0.3);
+}
+
+.toggleButton:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 30px rgba(255, 107, 107, 0.5);
+}
+
+.infoPanelContent {
+  padding: 2rem;
+}
+
+.infoPanelContent h2 {
+  font-size: 1.8rem;
+  margin-bottom: 2rem;
+  background: linear-gradient(135deg, #ff6b6b, #ffa500);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.infoPanelContent h3 {
+  font-size: 1.2rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.8rem;
+  color: #4ecdc4;
+  border-bottom: 1px solid #333;
+  padding-bottom: 0.5rem;
+}
+
+.infoPanelContent section {
+  margin-bottom: 2rem;
+}
+
+.infoPanelContent p {
+  color: #ccc;
+  line-height: 1.6;
+  margin: 0.5rem 0;
+  font-size: 0.95rem;
+}
+
+.infoPanelContent ul {
+  list-style: none;
+  padding: 0;
+}
+
+.infoPanelContent li {
+  color: #ccc;
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+  position: relative;
+}
+
+.infoPanelContent li:before {
+  content: "→";
+  position: absolute;
+  left: 0;
+  color: #4ecdc4;
+}
+
+.scoreGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.scoreCard {
+  background: rgba(78, 205, 196, 0.1);
+  border: 1px solid #4ecdc4;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+}
+
+.scoreCard span {
+  display: block;
+  color: #999;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.scoreCard strong {
+  display: block;
+  font-size: 1.4rem;
+  color: #4ecdc4;
+}
+
+.note {
+  background: rgba(255, 107, 107, 0.1);
+  border-left: 3px solid #ff6b6b;
+  padding: 1rem;
+  margin: 1rem 0;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  color: #ffb3b3;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .infoPanel {
+    width: 100%;
+  }
+
+  .infoPanelContent {
+    padding: 1.5rem;
+  }
+
+  .scoreGrid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+  }
+
+  .scoreCard {
+    padding: 0.8rem;
+  }
+
+  .scoreCard strong {
+    font-size: 1.1rem;
+  }
+}
+
+/* Scrollbar styling */
+.infoPanel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.infoPanel::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+.infoPanel::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 4px;
+}
+
+.infoPanel::-webkit-scrollbar-thumb:hover {
+  background: #666;
+}
