@@ -99,13 +99,12 @@ export default function Home() {
       <section className={`${styles.narrativeSection} ${styles.hero}`}>
         <div className={styles.sectionInner}>
           <p className={styles.eyebrow}>The Face of Earth</p>
-          <h1>You've heard the warnings.</h1>
+          <h1>The planet has vital signs. Most of us never see them.</h1>
           <p className={styles.lede}>
-            Predictions. Headlines that scroll past and vanish. None of them show you
-            what's actually happening — to the systems that keep you alive, and the
-            world you're handing to whoever comes next.
+            Not predictions. Not opinions. Six systems that keep this planet
+            running, mapped straight from data you can check yourself.
           </p>
-          <p className={styles.leadQuestion}>What if you could just see it?</p>
+          <p className={styles.leadQuestion}>What if you could just look?</p>
           <div className={styles.scrollCue}>↓ keep looking</div>
         </div>
       </section>
