@@ -97,6 +97,16 @@
   <div id="stage"><canvas id="art"></canvas></div>
   <div id="rail">
 
+    <div class="group" id="describe-group" hidden>
+      <div class="section-label">Describe <span class="note">maps onto the sliders below</span></div>
+      <textarea id="describeInput" class="gallery-note" rows="2" placeholder="e.g. a slim, tall, warm-toned person"></textarea>
+      <button id="describeBtn" class="primary">⤖ Set sliders from this</button>
+      <div class="flash" id="describeFlash"></div>
+      <div class="hint">Claude reads this and sets only the sliders it can confidently infer - build/taper, limb length, tone/warmth. It can't add hair, clothing, or anything this renderer has no parameter for; unmentioned traits are left wherever they already are.</div>
+    </div>
+
+    <hr class="divider">
+
     <div class="group">
       <div class="section-label">Conditions <span class="note">by body region</span></div>
       <div id="conditions"></div>
@@ -834,10 +844,77 @@
     );
   }
 
+  // --- "Describe yourself" via the real sample capability, when granted.
+  // Maps text onto ONLY the parameters that already exist below - it
+  // cannot add anything this renderer has no slider for. ---
+  async function initDescribe() {
+    if (!window.claude || typeof window.claude.use !== 'function') return;
+    let sampleFn = null;
+    try { sampleFn = await window.claude.use('sample'); } catch (e) { sampleFn = null; }
+    if (!sampleFn) return;
+
+    document.getElementById('describe-group').hidden = false;
+    const input = document.getElementById('describeInput');
+    const btn = document.getElementById('describeBtn');
+    const flash = document.getElementById('describeFlash');
+
+    const SCHEMA_HINT = [
+      'taper: number 0.45-0.92 (0.68 default; torso build - lower = slim/V-shaped, higher = broad/rectangular)',
+      'limb: number 0.85-1.15 (1.0 default; limb length proportion - lower = shorter limbs, higher = longer)',
+      'tone: number 0-1 (0.5 default/midpoint; 0 = lightest end of the tone scale, 1 = deepest end - include only if skin tone/complexion is actually described)',
+      'warmth: number 0-1 (0.5 default; skin undertone, 0 = cool, 1 = warm - include only if described)',
+    ].join('\n');
+
+    btn.addEventListener('click', async function () {
+      const desc = input.value.trim();
+      if (!desc) {
+        flash.textContent = 'Describe something first.';
+        setTimeout(function () { flash.textContent = ''; }, 3000);
+        return;
+      }
+      btn.disabled = true;
+      flash.textContent = 'Thinking…';
+      try {
+        const prompt = 'You map a short self-description onto a fixed numeric slider schema for a parametric line-drawing generator. ' +
+          'The generator supports ONLY these parameters:\n' + SCHEMA_HINT +
+          '\n\nInfer a value ONLY for what the description actually implies - omit any key you cannot reasonably infer, do not guess to fill every key. ' +
+          'Reply with ONLY a JSON object using a subset of these keys, no prose, no code fence.\n\nDescription: "' + desc.replace(/"/g, "'") + '"';
+        const data = await sampleFn.json(prompt, { modelTier: 'quick', cache: false });
+        const applied = [];
+        if (data && typeof data === 'object') {
+          if (typeof data.taper === 'number') { els.taper.value = clamp(data.taper, 0.45, 0.92); applied.push('taper'); }
+          if (typeof data.limb === 'number') { els.limb.value = clamp(data.limb, 0.85, 1.15); applied.push('limb'); }
+          if (typeof data.tone === 'number') { els.tone.value = clamp(data.tone, 0, 1); applied.push('tone'); }
+          if (typeof data.warmth === 'number') { els.warmth.value = clamp(data.warmth, 0, 1); applied.push('warmth'); }
+        }
+        if (applied.length) {
+          regenerate();
+          flash.textContent = 'Set: ' + applied.join(', ') + '.';
+        } else {
+          flash.textContent = 'Nothing in that mapped to a slider that exists.';
+        }
+      } catch (e) {
+        const code = e && e.code;
+        if (code === 'not_granted' || code === 'sampling_disabled' || code === 'not_declared' || code === 'capability_disabled') {
+          document.getElementById('describe-group').hidden = true;
+        } else if (code === 'invalid_json') {
+          flash.textContent = 'Could not parse a reply - try rephrasing.';
+        } else if (code === 'rate_limited') {
+          flash.textContent = 'Rate limited - try again in a moment.';
+        } else {
+          flash.textContent = 'Could not generate: ' + (code || 'unknown error');
+        }
+      }
+      btn.disabled = false;
+      setTimeout(function () { flash.textContent = ''; }, 5000);
+    });
+  }
+
   const sharedState = decodeStateFromHash();
   if (sharedState) applyState(sharedState);
   resize();
   initGallery();
+  initDescribe();
 })();
 </script>
 </body>
