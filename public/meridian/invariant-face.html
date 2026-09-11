@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invariant Face</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@600;700;900&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /*
+    Single committed world: a cyanotype drafting plate. Deliberately no
+    light/dark switching — the blueprint IS the design, the way a
+    letterpress card or an arcade screen commits to one register.
+  */
+  :root {
+    --blueprint: #0d2745;
+    --blueprint-2: #123058;
+    --panel: #0a2039;
+    --grid: #1d3f66;
+    --line: #dce8f2;
+    --dim: #7d97b0;
+    --faint: #4d6684;
+    --coherent: #3fb88f;
+    --coherent-dim: #235c48;
+    --fracture: #d97b3f;
+    --fracture-dim: #6e3f22;
+    --spark: #ffe9b8;
+    --ink-crack: #06172c;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: var(--blueprint);
+    color: var(--line);
+    font-family: 'Work Sans', ui-sans-serif, system-ui, sans-serif;
+    overflow: hidden;
+  }
+
+  body { display: grid; grid-template-rows: auto 1fr; height: 100dvh; }
+
+  header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 16px 22px 13px;
+    border-bottom: 1px solid var(--grid);
+    background: linear-gradient(to bottom, var(--panel), var(--blueprint));
+    flex-wrap: wrap;
+  }
+
+  .title-block { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+
+  .wordmark {
+    font-family: 'Big Shoulders', ui-sans-serif, sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: 0.02em;
+    color: var(--line);
+    text-transform: uppercase;
+  }
+
+  .thesis {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.03em;
+    color: var(--dim);
+  }
+
+  .header-actions { display: flex; align-items: center; gap: 14px; }
+
+  .toggle {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--line);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .toggle input { accent-color: var(--coherent); width: 14px; height: 14px; }
+
+  main {
+    display: grid;
+    grid-template-columns: 1fr 308px;
+    min-height: 0;
+  }
+
+  @media (max-width: 780px) {
+    main { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
+    #rail { border-top: 1px solid var(--grid); border-left: none; max-height: 46vh; }
+  }
+
+  #stage { position: relative; min-width: 0; min-height: 0; background: var(--blueprint); }
+  #art { position: absolute; inset: 0; display: block; }
+
+  #rail {
+    border-left: 1px solid var(--grid);
+    background: var(--panel);
+    padding: 16px 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    overflow-y: auto;
+  }
+  #rail::-webkit-scrollbar { width: 7px; }
+  #rail::-webkit-scrollbar-track { background: var(--panel); }
+  #rail::-webkit-scrollbar-thumb { background: var(--grid); border-radius: 3px; }
+
+  .section-label {
+    font-family: 'Big Shoulders', ui-sans-serif, sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.05em;
+    color: var(--line);
+    text-transform: uppercase;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+  .section-label span.note {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-weight: 400;
+    font-size: 9.5px;
+    letter-spacing: 0;
+    color: var(--faint);
+    text-transform: none;
+  }
+
+  .divider { height: 1px; background: var(--grid); border: none; margin: 0; }
+
+  .group { display: flex; flex-direction: column; gap: 10px; }
+
+  .cond-row { display: flex; flex-direction: column; gap: 5px; }
+  .cond-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.04em;
+  }
+  .cond-head .name { color: var(--line); text-transform: uppercase; }
+  .cond-head .sigma { color: var(--fracture); font-variant-numeric: tabular-nums; }
+  .cond-head .sigma.high { color: var(--coherent); }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 16px;
+    background: transparent;
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-runnable-track { height: 3px; background: var(--grid); }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 9px; height: 15px;
+    margin-top: -6px;
+    background: var(--line);
+    border-radius: 1px;
+    box-shadow: 0 0 6px rgba(220, 232, 242, 0.5);
+  }
+  input[type="range"]::-moz-range-track { height: 3px; background: var(--grid); }
+  input[type="range"]::-moz-range-thumb {
+    width: 9px; height: 15px; border: none;
+    background: var(--line); border-radius: 1px;
+  }
+  input[type="range"]:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--coherent); outline-offset: 2px; }
+
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field-label {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 10.5px; letter-spacing: 0.04em;
+    color: var(--dim); text-transform: uppercase;
+  }
+  .field-label b { font-weight: 500; color: var(--line); font-variant-numeric: tabular-nums; }
+
+  .readout {
+    display: flex; align-items: center; justify-content: space-between;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11px; letter-spacing: 0.03em;
+    color: var(--dim);
+  }
+  .readout b { color: var(--spark); font-weight: 500; font-variant-numeric: tabular-nums; }
+
+  button#regen, button.primary {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--line);
+    background: var(--blueprint-2);
+    border: 1px solid var(--grid);
+    padding: 10px 12px;
+    cursor: pointer;
+  }
+  button#regen:hover, button.primary:hover { border-color: var(--coherent); color: var(--coherent); }
+
+  .hint {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 9.5px; line-height: 1.55; color: var(--faint);
+  }
+
+  .flash { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 10px; color: var(--coherent); min-height: 13px; }
+
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 9.5px; color: var(--dim); text-transform: uppercase; }
+  .swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-block">
+    <div class="wordmark">Invariant Face</div>
+    <div class="thesis">not what makes a face — what can't be removed and still reads as one</div>
+  </div>
+  <div class="header-actions">
+    <label class="toggle"><input type="checkbox" id="showCanon" checked><span>Construction lines</span></label>
+  </div>
+</header>
+
+<main>
+  <div id="stage"><canvas id="art"></canvas></div>
+  <div id="rail">
+
+    <div class="group">
+      <div class="section-label">Coherence <span class="note">by planetary system</span></div>
+      <div id="conditions"></div>
+      <div class="readout">Mean σ <b id="v-mean">0.000</b></div>
+      <div class="legend">
+        <div class="legend-item"><span class="swatch" style="background:var(--coherent)"></span>coherent tissue</div>
+        <div class="legend-item"><span class="swatch" style="background:var(--fracture)"></span>fractured tissue</div>
+      </div>
+      <div class="hint">Example values, not a live feed — each system's σ paints one region: climate → brow, biodiversity → left cheek, water → right cheek, soil → jaw, energy → temple glow. Governance drives structural symmetry below.</div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="group">
+      <div class="section-label">Signal <span class="note">eyes / mouth</span></div>
+      <div class="field">
+        <div class="field-label"><span>Trajectory (eyes)</span><b id="v-traj">−0.30</b></div>
+        <input type="range" id="traj" min="-1" max="1" step="0.02" value="-0.3">
+      </div>
+      <div class="field">
+        <div class="field-label"><span>Momentum (mouth)</span><b id="v-mom">−0.20</b></div>
+        <input type="range" id="mom" min="-1" max="1" step="0.02" value="-0.2">
+      </div>
+      <div class="hint">Same convention as the geometric Face: eyes read the 10-year trajectory, the mouth reads this year's rate of change. Up/smile = improving.</div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="group">
+      <div class="section-label">Structure <span class="note">the blend space</span></div>
+      <div class="field">
+        <div class="field-label"><span>Jaw width</span><b id="v-jaw">0.68</b></div>
+        <input type="range" id="jaw" min="0.42" max="0.92" step="0.01" value="0.68">
+      </div>
+      <div class="field">
+        <div class="field-label"><span>Cheekbone width</span><b id="v-cheek">1.00</b></div>
+        <input type="range" id="cheek" min="0.85" max="1.18" step="0.01" value="1.00">
+      </div>
+      <div class="field">
+        <div class="field-label"><span>Turn</span><b id="v-turn">0°</b></div>
+        <input type="range" id="turn" min="-1" max="1" step="0.02" value="0">
+      </div>
+      <div class="readout">Asymmetry (from governance σ) <b id="v-asym">0.000</b></div>
+      <div class="hint">The canon fixes where landmarks must sit; these three interpolate the space in between. Governance σ, not a slider, sets how far the two sides drift apart.</div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="group">
+      <div class="readout">Seed <b id="v-seed">00000000</b></div>
+      <button id="regen">↻ New seed</button>
+      <button id="shareBtn" class="primary">⤴ Copy share link</button>
+      <div class="flash" id="shareFlash"></div>
+      <div class="hint">The link encodes every σ, signal and structure value plus the seed — anyone who opens it sees this exact plate, deterministically. No trained model, no account.</div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  const canvas = document.getElementById('art');
+  const ctx = canvas.getContext('2d');
+  const stage = document.getElementById('stage');
+  const showCanonEl = document.getElementById('showCanon');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  function smooth(e0, e1, x) { const t = clamp((x - e0) / (e1 - e0), 0, 1); return t * t * (3 - 2 * t); }
+  function mixRgb(c0, c1, t) { return [lerp(c0[0], c1[0], t) | 0, lerp(c0[1], c1[1], t) | 0, lerp(c0[2], c1[2], t) | 0]; }
+  function rgba(c, a) { return 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + a + ')'; }
+  function hexToRgb(h) { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+
+  const COHERENT = hexToRgb('#3fb88f');
+  const FRACTURE = hexToRgb('#d97b3f');
+  const SPARK = hexToRgb('#ffe9b8');
+  const CRACK_INK = hexToRgb('#06172c');
+  const LINE_COL = hexToRgb('#dce8f2');
+
+  function mulberry32(seed) {
+    return function () {
+      seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function makeNoise2D(rand) {
+    const size = 64;
+    const grid = new Float32Array(size * size);
+    for (let i = 0; i < grid.length; i++) grid[i] = rand();
+    return function (x, y) {
+      const xi = Math.floor(x), yi = Math.floor(y);
+      const xf = x - xi, yf = y - yi;
+      const w = (v) => ((v % size) + size) % size;
+      const g = (i, j) => grid[w(j) * size + w(i)];
+      const s = smooth(0, 1, xf), t = smooth(0, 1, yf);
+      const a = lerp(g(xi, yi), g(xi + 1, yi), s);
+      const b = lerp(g(xi, yi + 1), g(xi + 1, yi + 1), s);
+      return lerp(a, b, t);
+    };
+  }
+
+  // --- The canon: fixed invariants a face cannot lose and still read as one. ---
+  // y in head-units, -0.5 (crown) to +0.5 (chin). Widths as fraction of cheekbone half-width.
+  const CANON_Y = { brow: -0.08, eye: 0.0, noseBase: 0.22, chin: 0.5 };
+  CANON_Y.mouth = CANON_Y.noseBase + (CANON_Y.chin - CANON_Y.noseBase) / 3;
+
+  function halfWidthFraction(y, jaw) {
+    const stops = [
+      [-0.50, 0.00], [-0.40, 0.34], [-0.28, 0.46], [-0.10, 0.495],
+      [0.00, 0.50], [0.16, 0.47], [0.28, 0.47 * jaw], [0.40, 0.30 * jaw], [0.50, 0.05],
+    ];
+    for (let i = 0; i < stops.length - 1; i++) {
+      if (y >= stops[i][0] && y <= stops[i + 1][0]) {
+        const t = smooth(stops[i][0], stops[i + 1][0], y);
+        return lerp(stops[i][1], stops[i + 1][1], t);
+      }
+    }
+    return stops[stops.length - 1][1];
+  }
+
+  const els = {
+    jaw: document.getElementById('jaw'), cheek: document.getElementById('cheek'), turn: document.getElementById('turn'),
+    traj: document.getElementById('traj'), mom: document.getElementById('mom'),
+  };
+  const vals = {
+    jaw: document.getElementById('v-jaw'), cheek: document.getElementById('v-cheek'), turn: document.getElementById('v-turn'),
+    traj: document.getElementById('v-traj'), mom: document.getElementById('v-mom'),
+    mean: document.getElementById('v-mean'), asym: document.getElementById('v-asym'), seed: document.getElementById('v-seed'),
+  };
+
+  let seed = (Math.random() * 0xffffffff) >>> 0;
+  let W = 0, H = 0, DPR = 1;
+  let t0 = performance.now();
+
+  const SYSTEMS = [
+    { id: 'climate', name: 'Climate', sigma: 0.42 },
+    { id: 'biodiversity', name: 'Biodiversity', sigma: 0.50 },
+    { id: 'soil', name: 'Soil', sigma: 0.45 },
+    { id: 'water', name: 'Water', sigma: 0.55 },
+    { id: 'energy', name: 'Energy', sigma: 0.50 },
+    { id: 'governance', name: 'Governance', sigma: 0.55 },
+  ];
+  const condRefs = {};
+
+  function renderConditions() {
+    const el = document.getElementById('conditions');
+    el.innerHTML = '';
+    SYSTEMS.forEach(function (s) {
+      const row = document.createElement('div');
+      row.className = 'cond-row';
+      const head = document.createElement('div');
+      head.className = 'cond-head';
+      const name = document.createElement('span'); name.className = 'name'; name.textContent = s.name;
+      const sig = document.createElement('span'); sig.className = 'sigma'; sig.textContent = 'σ=' + s.sigma.toFixed(2);
+      head.append(name, sig);
+      const input = document.createElement('input');
+      input.type = 'range'; input.min = '0'; input.max = '1'; input.step = '0.01'; input.value = s.sigma;
+      input.addEventListener('input', function () { s.sigma = +input.value; regenerate(); });
+      row.append(head, input);
+      el.appendChild(row);
+      condRefs[s.id] = { sig, input, def: s };
+    });
+  }
+
+  function sigmaOf(id) { return condRefs[id].def.sigma; }
+
+  function syncConditionReadouts() {
+    let sum = 0;
+    SYSTEMS.forEach(function (s) {
+      const r = condRefs[s.id];
+      r.sig.textContent = 'σ=' + s.sigma.toFixed(2);
+      r.sig.classList.toggle('high', s.sigma >= 0.6);
+      sum += s.sigma;
+    });
+    vals.mean.textContent = (sum / SYSTEMS.length).toFixed(3);
+  }
+
+  // --- Deterministic per-seed jitter for a named landmark, stable until reseeded ---
+  let jitterRand = mulberry32(seed);
+  const jitterCache = {};
+  function jitter(key) {
+    if (!(key in jitterCache)) jitterCache[key] = jitterRand() * 2 - 1;
+    return jitterCache[key];
+  }
+
+  function buildCanon(p) {
+    const govSigma = sigmaOf('governance');
+    const asym = (1 - govSigma) * 0.09;
+    vals.asym.textContent = asym.toFixed(3);
+    return { jaw: p.jaw, cheek: p.cheek, turn: p.turn, asym: asym };
+  }
+
+  function outlinePoints(canon, cx, cy, Hpx, Wcpx) {
+    const N = 72;
+    const left = [], right = [];
+    for (let i = 0; i <= N; i++) {
+      const y = -0.5 + i / N;
+      const frac = halfWidthFraction(y, canon.jaw);
+      const asymL = 1 + jitter('outL_' + i) * canon.asym * 0.5;
+      const asymR = 1 + jitter('outR_' + i) * canon.asym * 0.5;
+      const turnL = 1 - canon.turn * 0.22, turnR = 1 + canon.turn * 0.22;
+      const hw = frac * (Wcpx / 2) * canon.cheek;
+      left.push({ x: cx - hw * turnL * asymL, y: cy + y * Hpx });
+      right.push({ x: cx + hw * turnR * asymR, y: cy + y * Hpx });
+    }
+    return { left, right };
+  }
+
+  function pathFromOutline(outline) {
+    const p = new Path2D();
+    p.moveTo(outline.left[0].x, outline.left[0].y);
+    for (let i = 1; i < outline.left.length; i++) p.lineTo(outline.left[i].x, outline.left[i].y);
+    for (let i = outline.right.length - 1; i >= 0; i--) p.lineTo(outline.right[i].x, outline.right[i].y);
+    p.closePath();
+    return p;
+  }
+
+  function landmarkX(cx, Wcpx, canon, sideSign, unitsFromCenter, key) {
+    const asym = 1 + jitter(key) * canon.asym;
+    const turnMul = 1 + canon.turn * 0.22 * sideSign;
+    const eyeWidth = Wcpx / 5;
+    return cx + sideSign * unitsFromCenter * eyeWidth * turnMul * asym;
+  }
+
+  function drawCracks(rect, noiseFn, count, depth, rng, alphaScale) {
+    const segs = [];
+    const cap = 1400;
+    let total = 0;
+    for (let k = 0; k < count; k++) {
+      const sx = rect.x + rng() * rect.w, sy = rect.y + rng() * rect.h;
+      let a = rng() * Math.PI * 2, x = sx, y = sy;
+      (function grow(x, y, a, d) {
+        const step = 4 + rng() * 5;
+        for (let s = 0; s < 7 && total < cap; s++) {
+          const na = a + (rng() - 0.5) * 0.9;
+          const nx = x + Math.cos(na) * step, ny = y + Math.sin(na) * step;
+          segs.push([x, y, nx, ny, d]);
+          total++;
+          x = nx; y = ny; a = na;
+          if (d < depth && rng() < 0.22) grow(x, y, a + (rng() - 0.5) * 1.4, d + 1);
+        }
+      })(x, y, a, 0);
+    }
+    for (const [x1, y1, x2, y2, d] of segs) {
+      ctx.strokeStyle = rgba(CRACK_INK, (0.55 - d * 0.12) * alphaScale);
+      ctx.lineWidth = Math.max(0.5, 1.6 - d * 0.4);
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    }
+  }
+
+  function fillNoiseTint(rect, noiseFn, colorGood, colorBad, sigma, scale) {
+    const cell = 5;
+    for (let yy = rect.y; yy < rect.y + rect.h; yy += cell) {
+      for (let xx = rect.x; xx < rect.x + rect.w; xx += cell) {
+        const n = noiseFn(xx * scale, yy * scale);
+        const bias = clamp(n * 0.6 + (1 - sigma) * 0.5, 0, 1);
+        const c = mixRgb(colorGood, colorBad, bias);
+        ctx.fillStyle = rgba(c, 0.5);
+        ctx.fillRect(xx, yy, cell, cell);
+      }
+    }
+  }
+
+  function regionRect(x, y, w, h) { return { x, y, w, h }; }
+
+  function render() {
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#0d2745';
+    ctx.fillRect(0, 0, W, H);
+
+    // faint construction grid across the whole plate
+    ctx.strokeStyle = 'rgba(29,63,102,0.55)';
+    ctx.lineWidth = 1;
+    for (let gx = 0; gx < W; gx += 28) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
+    for (let gy = 0; gy < H; gy += 28) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); }
+
+    const cx = W / 2, cy = H * 0.5;
+    const Hpx = Math.min(H * 0.72, W * 1.15);
+    const Wcpx = Hpx * 0.74;
+
+    const p = { jaw: +els.jaw.value, cheek: +els.cheek.value, turn: +els.turn.value };
+    const canon = buildCanon(p);
+    const outline = outlinePoints(canon, cx, cy, Hpx, Wcpx);
+    const facePath = pathFromOutline(outline);
+
+    const rand = mulberry32(seed ^ 0x9e3779b9);
+    const noise = makeNoise2D(rand);
+
+    // base tissue
+    ctx.save();
+    ctx.clip(facePath);
+    ctx.fillStyle = 'rgba(220,232,242,0.06)';
+    ctx.fillRect(cx - Wcpx, cy - Hpx, Wcpx * 2, Hpx * 2);
+    ctx.restore();
+
+    const top = cy - Hpx / 2, bot = cy + Hpx / 2;
+    const browPx = cy + CANON_Y.brow * Hpx, eyePx = cy + CANON_Y.eye * Hpx;
+    const noseBasePx = cy + CANON_Y.noseBase * Hpx, mouthPx = cy + CANON_Y.mouth * Hpx, chinPx = cy + CANON_Y.chin * Hpx;
+
+    function clippedRegion(rect, drawFn) {
+      ctx.save();
+      ctx.clip(facePath);
+      ctx.beginPath(); ctx.rect(rect.x, rect.y, rect.w, rect.h); ctx.clip();
+      drawFn();
+      ctx.restore();
+    }
+
+    // Climate -> forehead band
+    const climateSigma = sigmaOf('climate');
+    clippedRegion(regionRect(cx - Wcpx, top, Wcpx * 2, browPx - top), function () {
+      fillNoiseTint(regionRect(cx - Wcpx, top, Wcpx * 2, browPx - top), noise, COHERENT, FRACTURE, climateSigma, 0.05);
+      drawCracks(regionRect(cx - Wcpx * 0.9, top, Wcpx * 1.8, browPx - top), noise, Math.round((1 - climateSigma) * 5) + 1, 2, mulberry32(seed + 11), 1);
+    });
+
+    // Biodiversity -> left cheek (screen-left)
+    const bioSigma = sigmaOf('biodiversity');
+    clippedRegion(regionRect(cx - Wcpx, browPx, Wcpx, mouthPx - browPx), function () {
+      fillNoiseTint(regionRect(cx - Wcpx, browPx, Wcpx, mouthPx - browPx), noise, COHERENT, FRACTURE, bioSigma, 0.06);
+      drawCracks(regionRect(cx - Wcpx * 0.95, browPx, Wcpx * 0.9, mouthPx - browPx), noise, Math.round((1 - bioSigma) * 4) + 1, 2, mulberry32(seed + 23), 0.85);
+    });
+
+    // Water -> right cheek (screen-right)
+    const waterSigma = sigmaOf('water');
+    clippedRegion(regionRect(cx, browPx, Wcpx, mouthPx - browPx), function () {
+      const cool = mixRgb(COHERENT, [79, 180, 255], 0.5);
+      fillNoiseTint(regionRect(cx, browPx, Wcpx, mouthPx - browPx), noise, cool, FRACTURE, waterSigma, 0.06);
+      drawCracks(regionRect(cx + Wcpx * 0.05, browPx, Wcpx * 0.9, mouthPx - browPx), noise, Math.round((1 - waterSigma) * 4) + 1, 2, mulberry32(seed + 31), 0.85);
+    });
+
+    // Soil -> jaw / chin
+    const soilSigma = sigmaOf('soil');
+    clippedRegion(regionRect(cx - Wcpx, noseBasePx, Wcpx * 2, chinPx - noseBasePx + 12), function () {
+      const earth = mixRgb(FRACTURE, [110, 84, 52], 0.4);
+      fillNoiseTint(regionRect(cx - Wcpx, noseBasePx, Wcpx * 2, chinPx - noseBasePx + 12), noise, COHERENT, earth, soilSigma, 0.07);
+      drawCracks(regionRect(cx - Wcpx * 0.85, noseBasePx, Wcpx * 1.7, chinPx - noseBasePx + 10), noise, Math.round((1 - soilSigma) * 6) + 2, 3, mulberry32(seed + 41), 1);
+    });
+
+    // Energy -> temple rim glow (stroke along the silhouette near eye height)
+    const energySigma = sigmaOf('energy');
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    const glowColor = mixRgb(FRACTURE, SPARK, energySigma);
+    for (const side of [outline.left, outline.right]) {
+      ctx.beginPath();
+      let started = false;
+      for (let i = 0; i < side.length; i++) {
+        const yUnit = (side[i].y - cy) / Hpx;
+        if (yUnit < -0.14 || yUnit > 0.18) continue;
+        if (!started) { ctx.moveTo(side[i].x, side[i].y); started = true; }
+        else ctx.lineTo(side[i].x, side[i].y);
+      }
+      ctx.strokeStyle = rgba(glowColor, 0.35 + energySigma * 0.35);
+      ctx.lineWidth = 4 + energySigma * 3;
+      ctx.shadowColor = rgba(glowColor, 0.8); ctx.shadowBlur = 10 * energySigma + 2;
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // Face outline (drafting ink)
+    ctx.save();
+    ctx.strokeStyle = 'rgba(220,232,242,0.85)';
+    ctx.lineWidth = 1.4;
+    ctx.stroke(facePath);
+    ctx.restore();
+
+    // Eyes: tilt from trajectory
+    const traj = +els.traj.value;
+    const eyeWidth = Wcpx / 5;
+    const eyeHalf = eyeWidth * 0.42;
+    [-1, 1].forEach(function (side) {
+      const exBase = landmarkX(cx, Wcpx, canon, side, 1, 'eyeX' + side);
+      const ey = eyePx + jitter('eyeY' + side) * canon.asym * 12;
+      const tiltPx = traj * eyeHalf * 0.55 * side * -1;
+      ctx.save();
+      ctx.translate(exBase, ey);
+      ctx.rotate(traj * 0.28 * side);
+      ctx.beginPath();
+      ctx.moveTo(-eyeHalf, 0);
+      ctx.quadraticCurveTo(0, -eyeHalf * 0.62, eyeHalf, 0);
+      ctx.quadraticCurveTo(0, eyeHalf * 0.62, -eyeHalf, 0);
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(220,232,242,0.92)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(6,23,44,0.9)'; ctx.lineWidth = 1.2; ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, 0, eyeHalf * 0.4, 0, Math.PI * 2);
+      ctx.fillStyle = rgba(mixRgb(FRACTURE, COHERENT, clamp((traj + 1) / 2, 0, 1)), 1);
+      ctx.fill();
+      ctx.restore();
+      void tiltPx;
+    });
+
+    // Brows
+    ctx.save();
+    [-1, 1].forEach(function (side) {
+      const bx = landmarkX(cx, Wcpx, canon, side, 1, 'browX' + side);
+      const by = browPx + jitter('browY' + side) * canon.asym * 10;
+      ctx.beginPath();
+      ctx.moveTo(bx - eyeHalf * 1.05, by + 3);
+      ctx.quadraticCurveTo(bx, by - 6, bx + eyeHalf * 1.05 * side * 0 + eyeHalf * 1.05, by + 2);
+      ctx.strokeStyle = 'rgba(220,232,242,0.7)';
+      ctx.lineWidth = 2.4;
+      ctx.stroke();
+    });
+    ctx.restore();
+
+    // Nose (single centerline, canon width at base)
+    ctx.save();
+    const noseHalf = eyeWidth * 0.42;
+    ctx.beginPath();
+    ctx.moveTo(cx, eyePx + 4);
+    ctx.lineTo(cx - noseHalf * 0.3, noseBasePx);
+    ctx.moveTo(cx, eyePx + 4);
+    ctx.lineTo(cx + noseHalf * 0.3, noseBasePx);
+    ctx.strokeStyle = 'rgba(220,232,242,0.5)';
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.ellipse(cx, noseBasePx, noseHalf, noseHalf * 0.34, 0, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(220,232,242,0.55)';
+    ctx.stroke();
+    ctx.restore();
+
+    // Mouth: curve from momentum
+    const mom = +els.mom.value;
+    const mouthHalf = eyeWidth * 0.75;
+    ctx.save();
+    const mx = cx + jitter('mouthX') * canon.asym * 6;
+    ctx.beginPath();
+    ctx.moveTo(mx - mouthHalf, mouthPx);
+    ctx.quadraticCurveTo(mx, mouthPx - mom * mouthHalf * 0.55, mx + mouthHalf, mouthPx);
+    ctx.strokeStyle = rgba(mixRgb(FRACTURE, COHERENT, clamp((mom + 1) / 2, 0, 1)), 0.95);
+    ctx.lineWidth = 2.6;
+    ctx.stroke();
+    ctx.restore();
+
+    // Tears: driven by overall fracture (1 - mean sigma), not water alone
+    let meanSigma = 0; SYSTEMS.forEach(function (s) { meanSigma += s.sigma; }); meanSigma /= SYSTEMS.length;
+    const tearAmount = clamp((1 - meanSigma) - 0.35, 0, 1);
+    if (tearAmount > 0.02) {
+      ctx.save();
+      ctx.strokeStyle = rgba(SPARK, 0.5 * tearAmount + 0.15);
+      ctx.lineWidth = 1.6;
+      [-1, 1].forEach(function (side) {
+        const tx = landmarkX(cx, Wcpx, canon, side, 0.75, 'tearX' + side);
+        const ty0 = eyePx + eyeHalf * 0.5;
+        const len = (chinPx - eyePx) * (0.35 + tearAmount * 0.55);
+        ctx.beginPath();
+        ctx.moveTo(tx, ty0);
+        ctx.quadraticCurveTo(tx + side * 3, ty0 + len * 0.6, tx - side * 1.5, ty0 + len);
+        ctx.stroke();
+      });
+      ctx.restore();
+    }
+
+    // Construction lines (the canon, made legible)
+    if (showCanonEl.checked) {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255,233,184,0.55)';
+      ctx.setLineDash([5, 4]);
+      ctx.lineWidth = 1;
+      ctx.font = '9px "IBM Plex Mono", monospace';
+      ctx.fillStyle = 'rgba(255,233,184,0.75)';
+      const guides = [
+        [top, 'CROWN'], [browPx, 'BROW ARC'], [eyePx, 'EYE LINE · h/2'],
+        [noseBasePx, 'NOSE BASE'], [mouthPx, 'MOUTH · ⅓'], [chinPx, 'CHIN'],
+      ];
+      guides.forEach(function (g) {
+        ctx.beginPath(); ctx.moveTo(cx - Wcpx * 1.05, g[0]); ctx.lineTo(cx + Wcpx * 1.05, g[0]); ctx.stroke();
+        ctx.fillText(g[1], cx + Wcpx * 1.08, g[0] + 3);
+      });
+      ctx.setLineDash([]);
+      for (let u = -2; u <= 2; u++) {
+        const gx = cx + u * eyeWidth;
+        ctx.strokeStyle = 'rgba(255,233,184,0.28)';
+        ctx.beginPath(); ctx.moveTo(gx, top - 14); ctx.lineTo(gx, bot + 4); ctx.stroke();
+      }
+      ctx.fillText('w/5', cx + 2 * eyeWidth + 4, top - 6);
+      ctx.restore();
+    }
+  }
+
+  function currentParams() {
+    return { jaw: +els.jaw.value, cheek: +els.cheek.value, turn: +els.turn.value, traj: +els.traj.value, mom: +els.mom.value };
+  }
+
+  function syncReadouts() {
+    const p = currentParams();
+    vals.jaw.textContent = p.jaw.toFixed(2);
+    vals.cheek.textContent = p.cheek.toFixed(2);
+    vals.turn.textContent = Math.round(p.turn * 60) + '°';
+    vals.traj.textContent = (p.traj >= 0 ? '+' : '') + p.traj.toFixed(2);
+    vals.mom.textContent = (p.mom >= 0 ? '+' : '') + p.mom.toFixed(2);
+    vals.seed.textContent = (seed >>> 0).toString(16).padStart(8, '0');
+  }
+
+  function regenerate() {
+    syncConditionReadouts();
+    syncReadouts();
+    render();
+  }
+
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    const rect = stage.getBoundingClientRect();
+    W = rect.width; H = rect.height;
+    canvas.width = Math.max(1, W * DPR);
+    canvas.height = Math.max(1, H * DPR);
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    regenerate();
+  }
+
+  let resizeT;
+  window.addEventListener('resize', function () { clearTimeout(resizeT); resizeT = setTimeout(resize, 120); });
+
+  renderConditions();
+  Object.values(els).forEach(function (el) { el.addEventListener('input', regenerate); });
+  showCanonEl.addEventListener('change', regenerate);
+  document.getElementById('regen').addEventListener('click', function () {
+    seed = (Math.random() * 0xffffffff) >>> 0;
+    jitterRand = mulberry32(seed);
+    for (const k in jitterCache) delete jitterCache[k];
+    regenerate();
+  });
+
+  function serializeState() {
+    const s = { v: 1, seed: seed, jaw: +els.jaw.value, cheek: +els.cheek.value, turn: +els.turn.value, traj: +els.traj.value, mom: +els.mom.value, canon: showCanonEl.checked, sigma: {} };
+    SYSTEMS.forEach(function (sys) { s.sigma[sys.id] = sys.sigma; });
+    return s;
+  }
+  function applyState(state) {
+    if (!state) return;
+    seed = (state.seed >>> 0) || seed;
+    jitterRand = mulberry32(seed);
+    for (const k in jitterCache) delete jitterCache[k];
+    if (state.jaw != null) els.jaw.value = state.jaw;
+    if (state.cheek != null) els.cheek.value = state.cheek;
+    if (state.turn != null) els.turn.value = state.turn;
+    if (state.traj != null) els.traj.value = state.traj;
+    if (state.mom != null) els.mom.value = state.mom;
+    if (state.canon != null) showCanonEl.checked = !!state.canon;
+    if (state.sigma) SYSTEMS.forEach(function (sys) { if (state.sigma[sys.id] != null) sys.sigma = state.sigma[sys.id]; });
+    renderConditions();
+    regenerate();
+  }
+  function decodeStateFromHash() {
+    const h = window.location.hash;
+    if (!h || h.indexOf('#s=') !== 0) return null;
+    try { return JSON.parse(decodeURIComponent(h.slice(3))); } catch (e) { return null; }
+  }
+  document.getElementById('shareBtn').addEventListener('click', function () {
+    const encoded = encodeURIComponent(JSON.stringify(serializeState()));
+    window.location.hash = 's=' + encoded;
+    const url = window.location.origin + window.location.pathname + window.location.search + '#s=' + encoded;
+    const flash = document.getElementById('shareFlash');
+    (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject())
+      .then(function () { flash.textContent = 'Link copied — same seed, same plate for anyone who opens it.'; })
+      .catch(function () { flash.textContent = 'Could not copy automatically — URL updated in the address bar.'; });
+    setTimeout(function () { flash.textContent = ''; }, 4500);
+  });
+
+  const sharedState = decodeStateFromHash();
+  if (sharedState) applyState(sharedState);
+  resize();
+})();
+</script>
+</body>
+</html>

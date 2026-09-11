@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invariant Form</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@600;700;900&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Same committed cyanotype world as Invariant Face — one series, one register. */
+  :root {
+    --blueprint: #0d2745;
+    --blueprint-2: #123058;
+    --panel: #0a2039;
+    --grid: #1d3f66;
+    --line: #dce8f2;
+    --dim: #7d97b0;
+    --faint: #4d6684;
+    --coherent: #3fb88f;
+    --fracture: #d97b3f;
+    --spark: #ffe9b8;
+    --ink-crack: #06172c;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--blueprint); color: var(--line); font-family: 'Work Sans', ui-sans-serif, system-ui, sans-serif; overflow: hidden; }
+  body { display: grid; grid-template-rows: auto 1fr; height: 100dvh; }
+  header { display: flex; align-items: baseline; justify-content: space-between; gap: 18px; padding: 16px 22px 13px; border-bottom: 1px solid var(--grid); background: linear-gradient(to bottom, var(--panel), var(--blueprint)); flex-wrap: wrap; }
+  .title-block { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .wordmark { font-family: 'Big Shoulders', ui-sans-serif, sans-serif; font-weight: 800; font-size: 22px; letter-spacing: 0.02em; color: var(--line); text-transform: uppercase; }
+  .thesis { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.03em; color: var(--dim); }
+  .header-actions { display: flex; align-items: center; gap: 14px; }
+  .toggle { display: flex; align-items: center; gap: 7px; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--line); cursor: pointer; white-space: nowrap; }
+  .toggle input { accent-color: var(--coherent); width: 14px; height: 14px; }
+  main { display: grid; grid-template-columns: 1fr 308px; min-height: 0; }
+  @media (max-width: 780px) { main { grid-template-columns: 1fr; grid-template-rows: 1fr auto; } #rail { border-top: 1px solid var(--grid); border-left: none; max-height: 46vh; } }
+  #stage { position: relative; min-width: 0; min-height: 0; background: var(--blueprint); }
+  #art { position: absolute; inset: 0; display: block; }
+  #rail { border-left: 1px solid var(--grid); background: var(--panel); padding: 16px 16px 18px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
+  #rail::-webkit-scrollbar { width: 7px; }
+  #rail::-webkit-scrollbar-track { background: var(--panel); }
+  #rail::-webkit-scrollbar-thumb { background: var(--grid); border-radius: 3px; }
+  .section-label { font-family: 'Big Shoulders', ui-sans-serif, sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.05em; color: var(--line); text-transform: uppercase; display: flex; align-items: baseline; justify-content: space-between; }
+  .section-label span.note { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-weight: 400; font-size: 9.5px; letter-spacing: 0; color: var(--faint); text-transform: none; }
+  .divider { height: 1px; background: var(--grid); border: none; margin: 0; }
+  .group { display: flex; flex-direction: column; gap: 10px; }
+  .cond-row { display: flex; flex-direction: column; gap: 5px; }
+  .cond-head { display: flex; align-items: baseline; justify-content: space-between; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.04em; }
+  .cond-head .name { color: var(--line); text-transform: uppercase; }
+  .cond-head .sigma { color: var(--fracture); font-variant-numeric: tabular-nums; }
+  .cond-head .sigma.high { color: var(--coherent); }
+  input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 16px; background: transparent; cursor: pointer; }
+  input[type="range"]::-webkit-slider-runnable-track { height: 3px; background: var(--grid); }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 9px; height: 15px; margin-top: -6px; background: var(--line); border-radius: 1px; box-shadow: 0 0 6px rgba(220, 232, 242, 0.5); }
+  input[type="range"]::-moz-range-track { height: 3px; background: var(--grid); }
+  input[type="range"]::-moz-range-thumb { width: 9px; height: 15px; border: none; background: var(--line); border-radius: 1px; }
+  input[type="range"]:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--coherent); outline-offset: 2px; }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field-label { display: flex; justify-content: space-between; align-items: baseline; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.04em; color: var(--dim); text-transform: uppercase; }
+  .field-label b { font-weight: 500; color: var(--line); font-variant-numeric: tabular-nums; }
+  .readout { display: flex; align-items: center; justify-content: space-between; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.03em; color: var(--dim); }
+  .readout b { color: var(--spark); font-weight: 500; font-variant-numeric: tabular-nums; }
+  button#regen, button.primary { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--line); background: var(--blueprint-2); border: 1px solid var(--grid); padding: 10px 12px; cursor: pointer; }
+  button#regen:hover, button.primary:hover { border-color: var(--coherent); color: var(--coherent); }
+  .hint { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 9.5px; line-height: 1.55; color: var(--faint); }
+  .flash { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 10px; color: var(--coherent); min-height: 13px; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 9.5px; color: var(--dim); text-transform: uppercase; }
+  .swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-block">
+    <div class="wordmark">Invariant Form</div>
+    <div class="thesis">the eight-head canon — arm span equals height, hip is the true center</div>
+  </div>
+  <div class="header-actions">
+    <label class="toggle"><input type="checkbox" id="showCanon" checked><span>Construction lines</span></label>
+  </div>
+</header>
+
+<main>
+  <div id="stage"><canvas id="art"></canvas></div>
+  <div id="rail">
+
+    <div class="group">
+      <div class="section-label">Conditions <span class="note">by body region</span></div>
+      <div id="conditions"></div>
+      <div class="readout">Mean σ <b id="v-mean">0.000</b></div>
+      <div class="legend">
+        <div class="legend-item"><span class="swatch" style="background:var(--coherent)"></span>coherent tissue</div>
+        <div class="legend-item"><span class="swatch" style="background:var(--fracture)"></span>fractured tissue</div>
+      </div>
+      <div class="hint">Example values, not a live feed — chest, limbs, core, foundation each paint one region; vitality drives the solar-plexus glow. Posture drives structural symmetry below.</div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="group">
+      <div class="section-label">Structure <span class="note">the blend space</span></div>
+      <div class="field">
+        <div class="field-label"><span>Build (torso taper)</span><b id="v-taper">0.68</b></div>
+        <input type="range" id="taper" min="0.45" max="0.92" step="0.01" value="0.68">
+      </div>
+      <div class="field">
+        <div class="field-label"><span>Limb length</span><b id="v-limb">1.00</b></div>
+        <input type="range" id="limb" min="0.85" max="1.15" step="0.01" value="1.00">
+      </div>
+      <div class="field">
+        <div class="field-label"><span>Weight shift (contrapposto)</span><b id="v-shift">0.00</b></div>
+        <input type="range" id="shift" min="-1" max="1" step="0.02" value="0">
+      </div>
+      <div class="readout">Postural asymmetry (from posture σ) <b id="v-asym">0.000</b></div>
+      <div class="hint">The canon fixes where every joint must sit relative to head-height; these interpolate the space in between. Posture σ, not a slider, sets how far the stance drifts from upright.</div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="group">
+      <div class="readout">Seed <b id="v-seed">00000000</b></div>
+      <button id="regen">↻ New seed</button>
+      <button id="shareBtn" class="primary">⤴ Copy share link</button>
+      <div class="flash" id="shareFlash"></div>
+      <div class="hint">Same mechanic as Invariant Face and Meridian Engine — the link encodes every σ and structure value plus the seed. No trained model, no account.</div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  const canvas = document.getElementById('art');
+  const ctx = canvas.getContext('2d');
+  const stage = document.getElementById('stage');
+  const showCanonEl = document.getElementById('showCanon');
+
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  function smooth(e0, e1, x) { const t = clamp((x - e0) / (e1 - e0), 0, 1); return t * t * (3 - 2 * t); }
+  function mixRgb(c0, c1, t) { return [lerp(c0[0], c1[0], t) | 0, lerp(c0[1], c1[1], t) | 0, lerp(c0[2], c1[2], t) | 0]; }
+  function rgba(c, a) { return 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + a + ')'; }
+  function hexToRgb(h) { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+
+  const COHERENT = hexToRgb('#3fb88f');
+  const FRACTURE = hexToRgb('#d97b3f');
+  const SPARK = hexToRgb('#ffe9b8');
+  const CRACK_INK = hexToRgb('#06172c');
+
+  function mulberry32(seed) {
+    return function () {
+      seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function makeNoise2D(rand) {
+    const size = 64;
+    const grid = new Float32Array(size * size);
+    for (let i = 0; i < grid.length; i++) grid[i] = rand();
+    return function (x, y) {
+      const xi = Math.floor(x), yi = Math.floor(y);
+      const xf = x - xi, yf = y - yi;
+      const w = (v) => ((v % size) + size) % size;
+      const g = (i, j) => grid[w(j) * size + w(i)];
+      const s = smooth(0, 1, xf), t = smooth(0, 1, yf);
+      const a = lerp(g(xi, yi), g(xi + 1, yi), s);
+      const b = lerp(g(xi, yi + 1), g(xi + 1, yi + 1), s);
+      return lerp(a, b, t);
+    };
+  }
+
+  // --- The canon: the eight-head figure. y in head-units, 0 (crown) to 8 (heel). ---
+  const CANON_Y = { crown: 0, chin: 1, shoulder: 1.45, chest: 2.0, waist: 3.0, hip: 4.0, elbow: 3.0, wrist: 4.05, knee: 6.0, calf: 7.0, heel: 8.0 };
+
+  const els = {
+    taper: document.getElementById('taper'), limb: document.getElementById('limb'), shift: document.getElementById('shift'),
+  };
+  const vals = {
+    taper: document.getElementById('v-taper'), limb: document.getElementById('v-limb'), shift: document.getElementById('v-shift'),
+    mean: document.getElementById('v-mean'), asym: document.getElementById('v-asym'), seed: document.getElementById('v-seed'),
+  };
+
+  let seed = (Math.random() * 0xffffffff) >>> 0;
+  let W = 0, H = 0, DPR = 1;
+
+  const SYSTEMS = [
+    { id: 'chest', name: 'Chest', sigma: 0.42 },
+    { id: 'limbs', name: 'Limbs', sigma: 0.50 },
+    { id: 'foundation', name: 'Foundation', sigma: 0.45 },
+    { id: 'core', name: 'Core', sigma: 0.55 },
+    { id: 'vitality', name: 'Vitality', sigma: 0.50 },
+    { id: 'posture', name: 'Posture', sigma: 0.55 },
+  ];
+  const condRefs = {};
+
+  function renderConditions() {
+    const el = document.getElementById('conditions');
+    el.innerHTML = '';
+    SYSTEMS.forEach(function (s) {
+      const row = document.createElement('div'); row.className = 'cond-row';
+      const head = document.createElement('div'); head.className = 'cond-head';
+      const name = document.createElement('span'); name.className = 'name'; name.textContent = s.name;
+      const sig = document.createElement('span'); sig.className = 'sigma'; sig.textContent = 'sigma=' + s.sigma.toFixed(2);
+      head.append(name, sig);
+      const input = document.createElement('input');
+      input.type = 'range'; input.min = '0'; input.max = '1'; input.step = '0.01'; input.value = s.sigma;
+      input.addEventListener('input', function () { s.sigma = +input.value; regenerate(); });
+      row.append(head, input);
+      el.appendChild(row);
+      condRefs[s.id] = { sig, input, def: s };
+    });
+  }
+  function sigmaOf(id) { return condRefs[id].def.sigma; }
+  function syncConditionReadouts() {
+    let sum = 0;
+    SYSTEMS.forEach(function (s) {
+      const r = condRefs[s.id];
+      r.sig.textContent = 'sigma=' + s.sigma.toFixed(2);
+      r.sig.classList.toggle('high', s.sigma >= 0.6);
+      sum += s.sigma;
+    });
+    vals.mean.textContent = (sum / SYSTEMS.length).toFixed(3);
+  }
+
+  let jitterRand = mulberry32(seed);
+  const jitterCache = {};
+  function jitter(key) { if (!(key in jitterCache)) jitterCache[key] = jitterRand() * 2 - 1; return jitterCache[key]; }
+
+  function capsulePath(x1, y1, x2, y2, r1, r2) {
+    const angle = Math.atan2(y2 - y1, x2 - x1);
+    const p = new Path2D();
+    p.arc(x1, y1, r1, angle + Math.PI / 2, angle - Math.PI / 2, true);
+    p.arc(x2, y2, r2, angle - Math.PI / 2, angle + Math.PI / 2, true);
+    p.closePath();
+    return p;
+  }
+
+  function drawCracks(rect, count, depth, rng, alphaScale) {
+    const segs = []; const cap = 900; let total = 0;
+    for (let k = 0; k < count; k++) {
+      const sx = rect.x + rng() * rect.w, sy = rect.y + rng() * rect.h;
+      (function grow(x, y, a, d) {
+        const step = 3 + rng() * 4;
+        for (let s = 0; s < 6 && total < cap; s++) {
+          const na = a + (rng() - 0.5) * 0.9;
+          const nx = x + Math.cos(na) * step, ny = y + Math.sin(na) * step;
+          segs.push([x, y, nx, ny, d]); total++;
+          x = nx; y = ny; a = na;
+          if (d < depth && rng() < 0.22) grow(x, y, a + (rng() - 0.5) * 1.4, d + 1);
+        }
+      })(sx, sy, rng() * Math.PI * 2, 0);
+    }
+    for (const [x1, y1, x2, y2, d] of segs) {
+      ctx.strokeStyle = rgba(CRACK_INK, (0.55 - d * 0.12) * alphaScale);
+      ctx.lineWidth = Math.max(0.5, 1.5 - d * 0.35);
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    }
+  }
+
+  function fillNoiseTint(rect, noiseFn, colorGood, colorBad, sigma, scale) {
+    const cell = 5;
+    for (let yy = rect.y; yy < rect.y + rect.h; yy += cell) {
+      for (let xx = rect.x; xx < rect.x + rect.w; xx += cell) {
+        const n = noiseFn(xx * scale, yy * scale);
+        const bias = clamp(n * 0.6 + (1 - sigma) * 0.5, 0, 1);
+        const c = mixRgb(colorGood, colorBad, bias);
+        ctx.fillStyle = rgba(c, 0.5);
+        ctx.fillRect(xx, yy, cell, cell);
+      }
+    }
+  }
+
+  function regionRect(x, y, w, h) { return { x, y, w, h }; }
+
+  function withClip(path, rect, drawFn) {
+    ctx.save();
+    ctx.clip(path);
+    if (rect) { ctx.beginPath(); ctx.rect(rect.x, rect.y, rect.w, rect.h); ctx.clip(); }
+    drawFn();
+    ctx.restore();
+  }
+
+  function render() {
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#0d2745';
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.strokeStyle = 'rgba(29,63,102,0.55)'; ctx.lineWidth = 1;
+    for (let gx = 0; gx < W; gx += 28) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
+    for (let gy = 0; gy < H; gy += 28) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); }
+
+    const postureSigma = sigmaOf('posture');
+    const asym = (1 - postureSigma) * 0.10;
+    vals.asym.textContent = asym.toFixed(3);
+
+    const taper = +els.taper.value, limbMul = +els.limb.value, shift = +els.shift.value;
+
+    // Fit an 8-head figure into the stage with margin.
+    const marginY = H * 0.06;
+    const availH = H - marginY * 2;
+    const availW = W * 0.9;
+    const unit = Math.min(availH / 8, availW / 2.3);
+    const cx = W / 2 + jitter('lean') * asym * unit * 0.6 + shift * unit * 0.18;
+    const top = marginY + (H - marginY * 2 - unit * 8) / 2;
+    const Y = (u) => top + u * unit;
+
+    const hipShift = shift * unit * 0.22;
+    const shoulderShift = -shift * unit * 0.14;
+
+    // --- Landmarks (canon fixed, blend + jitter applied) ---
+    const shoulderW = unit * 1.05, chestW = unit * 0.92 * (0.6 + taper * 0.5), waistW = unit * 0.62 * taper, hipW = unit * 0.86;
+    const asymL = 1 + jitter('sideL') * asym, asymR = 1 + jitter('sideR') * asym;
+
+    const shoulderY = Y(CANON_Y.shoulder), chestY = Y(CANON_Y.chest), waistY = Y(CANON_Y.waist), hipY = Y(CANON_Y.hip);
+    const shoulderLX = cx + shoulderShift - shoulderW * asymL, shoulderRX = cx + shoulderShift + shoulderW * asymR;
+    const hipLX = cx + hipShift - hipW * 0.5 * asymL, hipRX = cx + hipShift + hipW * 0.5 * asymR;
+
+    // Torso silhouette (shoulder -> chest -> waist -> hip), one closed path.
+    const torso = new Path2D();
+    torso.moveTo(shoulderLX, shoulderY);
+    torso.quadraticCurveTo(cx - chestW * asymL, chestY, cx - waistW * asymL, waistY);
+    torso.quadraticCurveTo(cx - hipW * 0.55 * asymL, (waistY + hipY) / 2, hipLX, hipY);
+    torso.lineTo(hipRX, hipY);
+    torso.quadraticCurveTo(cx + hipW * 0.55 * asymR, (waistY + hipY) / 2, cx + waistW * asymR, waistY);
+    torso.quadraticCurveTo(cx + chestW * asymR, chestY, shoulderRX, shoulderY);
+    torso.closePath();
+
+    // Head
+    const headR = unit * 0.34;
+    const headCX = cx + jitter('headTilt') * asym * unit * 0.3;
+    const headCY = Y(CANON_Y.crown) + headR * 1.02;
+
+    // Neck
+    const neck = new Path2D();
+    neck.rect(cx - unit * 0.14, Y(CANON_Y.chin) - 2, unit * 0.28, shoulderY - Y(CANON_Y.chin) + 4);
+
+    // Legs (hip -> knee -> heel), two segments each, capsule shapes.
+    const legTopR = unit * 0.19, kneeR = unit * 0.13, ankleR = unit * 0.08;
+    const legIn = 1 - limbMul * 0 + 0; // placeholder for readability
+    function legPath(side) {
+      const hx = side < 0 ? hipLX + hipW * 0.12 * asymL : hipRX - hipW * 0.12 * asymR;
+      const kx = cx + side * unit * 0.28 * limbMul + jitter('knee' + side) * asym * unit * 0.3;
+      const ky = Y(CANON_Y.knee * (2 - limbMul));
+      const ax = cx + side * unit * 0.22 * limbMul + jitter('ankle' + side) * asym * unit * 0.3;
+      const ay = Y(CANON_Y.heel * (2 - limbMul)) - ankleR * 0.6;
+      const upper = capsulePath(hx, hipY, kx, ky, legTopR, kneeR);
+      const lower = capsulePath(kx, ky, ax, ay, kneeR, ankleR);
+      return { upper, lower, ax, ay, side };
+    }
+    const legL = legPath(-1), legR = legPath(1);
+
+    // Arms (shoulder -> elbow -> wrist), two segments each.
+    const armTopR = unit * 0.13, elbowR = unit * 0.09, wristR = unit * 0.065;
+    function armPath(side) {
+      const sx = side < 0 ? shoulderLX : shoulderRX;
+      const ex = sx + side * unit * 0.10 * limbMul + jitter('elbow' + side) * asym * unit * 0.25;
+      const ey = Y(CANON_Y.elbow * (2 - limbMul) + 0.0);
+      const wx = ex + side * unit * 0.06 * limbMul + jitter('wrist' + side) * asym * unit * 0.25;
+      const wy = Y(CANON_Y.wrist * (2 - limbMul));
+      const upper = capsulePath(sx, shoulderY, ex, ey, armTopR, elbowR);
+      const lower = capsulePath(ex, ey, wx, wy, elbowR, wristR);
+      return { upper, lower, wx, wy, side };
+    }
+    const armL = armPath(-1), armR = armPath(1);
+
+    const rand = mulberry32(seed ^ 0x51ed270b);
+    const noise = makeNoise2D(rand);
+
+    // base tissue tone across the whole figure (torso + limbs + head), faint
+    [torso, neck, legL.upper, legL.lower, legR.upper, legR.lower, armL.upper, armL.lower, armR.upper, armR.lower].forEach(function (p) {
+      ctx.save(); ctx.clip(p);
+      ctx.fillStyle = 'rgba(220,232,242,0.06)';
+      ctx.fillRect(0, 0, W, H);
+      ctx.restore();
+    });
+    ctx.save(); ctx.beginPath(); ctx.arc(headCX, headCY, headR, 0, Math.PI * 2); ctx.clip();
+    ctx.fillStyle = 'rgba(220,232,242,0.06)'; ctx.fillRect(0, 0, W, H); ctx.restore();
+
+    // Chest band
+    const chestSigma = sigmaOf('chest');
+    withClip(torso, regionRect(cx - shoulderW * 1.1, shoulderY, shoulderW * 2.2, chestY - shoulderY + 6), function () {
+      fillNoiseTint(regionRect(cx - shoulderW * 1.1, shoulderY, shoulderW * 2.2, chestY - shoulderY + 6), noise, COHERENT, FRACTURE, chestSigma, 0.06);
+      drawCracks(regionRect(cx - shoulderW, shoulderY, shoulderW * 2, chestY - shoulderY + 4), Math.round((1 - chestSigma) * 5) + 1, 2, mulberry32(seed + 11), 1);
+    });
+
+    // Core (waist to hip)
+    const coreSigma = sigmaOf('core');
+    withClip(torso, regionRect(cx - waistW * 1.3, chestY, waistW * 2.6, hipY - chestY + 6), function () {
+      const cool = mixRgb(COHERENT, [79, 180, 255], 0.5);
+      fillNoiseTint(regionRect(cx - waistW * 1.3, chestY, waistW * 2.6, hipY - chestY + 6), noise, cool, FRACTURE, coreSigma, 0.07);
+      drawCracks(regionRect(cx - waistW * 1.1, chestY, waistW * 2.2, hipY - chestY + 4), Math.round((1 - coreSigma) * 5) + 1, 2, mulberry32(seed + 31), 0.9);
+    });
+
+    // Vitality -> solar plexus glow
+    const vitalitySigma = sigmaOf('vitality');
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    const glowColor = mixRgb(FRACTURE, SPARK, vitalitySigma);
+    const glowY = (chestY + waistY) / 2;
+    const grad = ctx.createRadialGradient(cx, glowY, 0, cx, glowY, unit * 0.7);
+    grad.addColorStop(0, rgba(glowColor, 0.5 + vitalitySigma * 0.35));
+    grad.addColorStop(1, rgba(glowColor, 0));
+    ctx.fillStyle = grad;
+    ctx.beginPath(); ctx.arc(cx, glowY, unit * 0.7, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+
+    // Limbs -> arms
+    const limbsSigma = sigmaOf('limbs');
+    [armL, armR].forEach(function (arm, i) {
+      const bbox = regionRect(Math.min(arm.upper._x1 || 0, 0), shoulderY - 4, unit * 1.4, arm.wy - shoulderY + unit * 0.2);
+      [arm.upper, arm.lower].forEach(function (seg) {
+        withClip(seg, regionRect(cx - shoulderW * 2, shoulderY - 4, shoulderW * 4, arm.wy - shoulderY + unit * 0.3), function () {
+          fillNoiseTint(regionRect(cx - shoulderW * 2, shoulderY - 4, shoulderW * 4, arm.wy - shoulderY + unit * 0.3), noise, COHERENT, FRACTURE, limbsSigma, 0.08);
+        });
+      });
+      drawCracks(regionRect(cx + arm.side * shoulderW * 1.5 - unit * 0.3, shoulderY, unit * 0.6, arm.wy - shoulderY), Math.round((1 - limbsSigma) * 3) + 1, 2, mulberry32(seed + 51 + i), 0.85);
+      void bbox;
+    });
+
+    // Foundation -> legs
+    const foundationSigma = sigmaOf('foundation');
+    [legL, legR].forEach(function (leg, i) {
+      [leg.upper, leg.lower].forEach(function (seg) {
+        withClip(seg, regionRect(cx - hipW * 2, hipY - 4, hipW * 4, leg.ay - hipY + unit * 0.3), function () {
+          const earth = mixRgb(FRACTURE, [110, 84, 52], 0.4);
+          fillNoiseTint(regionRect(cx - hipW * 2, hipY - 4, hipW * 4, leg.ay - hipY + unit * 0.3), noise, COHERENT, earth, foundationSigma, 0.06);
+        });
+      });
+      drawCracks(regionRect(cx + leg.side * unit * 0.3 - unit * 0.35, hipY, unit * 0.7, leg.ay - hipY), Math.round((1 - foundationSigma) * 6) + 2, 3, mulberry32(seed + 71 + i), 1);
+    });
+
+    // Ink outlines over the tinted fills
+    ctx.save();
+    ctx.strokeStyle = 'rgba(220,232,242,0.85)'; ctx.lineWidth = 1.4;
+    [torso, neck].forEach(function (p) { ctx.stroke(p); });
+    [legL.upper, legL.lower, legR.upper, legR.lower, armL.upper, armL.lower, armR.upper, armR.lower].forEach(function (p) { ctx.stroke(p); });
+    ctx.beginPath(); ctx.arc(headCX, headCY, headR, 0, Math.PI * 2); ctx.stroke();
+    ctx.restore();
+
+    // hands / feet marks
+    ctx.save(); ctx.fillStyle = 'rgba(220,232,242,0.85)';
+    [armL, armR].forEach(function (a) { ctx.beginPath(); ctx.ellipse(a.wx, a.wy + unit * 0.05, unit * 0.07, unit * 0.1, 0, 0, Math.PI * 2); ctx.fill(); });
+    [legL, legR].forEach(function (l) { ctx.beginPath(); ctx.ellipse(l.ax + l.side * unit * 0.08, l.ay + unit * 0.02, unit * 0.16, unit * 0.06, 0, 0, Math.PI * 2); ctx.fill(); });
+    ctx.restore();
+
+    // Construction lines
+    if (showCanonEl.checked) {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255,233,184,0.5)'; ctx.setLineDash([5, 4]); ctx.lineWidth = 1;
+      ctx.font = '9px "IBM Plex Mono", monospace'; ctx.fillStyle = 'rgba(255,233,184,0.75)';
+      const guides = [
+        [Y(0), 'CROWN · 0h'], [Y(1), 'CHIN · 1h'], [Y(2), 'CHEST · 2h'], [Y(3), 'WAIST · 3h'],
+        [Y(4), 'HIP · 4h (center)'], [Y(6), 'KNEE · 6h'], [Y(8), 'HEEL · 8h'],
+      ];
+      guides.forEach(function (g) {
+        ctx.beginPath(); ctx.moveTo(cx - unit * 1.3, g[0]); ctx.lineTo(cx + unit * 1.3, g[0]); ctx.stroke();
+        ctx.fillText(g[1], cx + unit * 1.34, g[0] + 3);
+      });
+      ctx.setLineDash([]);
+      ctx.strokeStyle = 'rgba(255,233,184,0.4)';
+      ctx.beginPath(); ctx.moveTo(cx, Y(0) - unit * 0.4); ctx.lineTo(cx, Y(8)); ctx.stroke();
+      ctx.fillText('midline', cx + 4, Y(0) - unit * 0.4 + 9);
+      ctx.restore();
+    }
+  }
+
+  function syncReadouts() {
+    vals.taper.textContent = (+els.taper.value).toFixed(2);
+    vals.limb.textContent = (+els.limb.value).toFixed(2);
+    vals.shift.textContent = (+els.shift.value >= 0 ? '+' : '') + (+els.shift.value).toFixed(2);
+    vals.seed.textContent = (seed >>> 0).toString(16).padStart(8, '0');
+  }
+
+  function regenerate() { syncConditionReadouts(); syncReadouts(); render(); }
+
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    const rect = stage.getBoundingClientRect();
+    W = rect.width; H = rect.height;
+    canvas.width = Math.max(1, W * DPR);
+    canvas.height = Math.max(1, H * DPR);
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    regenerate();
+  }
+
+  let resizeT;
+  window.addEventListener('resize', function () { clearTimeout(resizeT); resizeT = setTimeout(resize, 120); });
+
+  renderConditions();
+  Object.values(els).forEach(function (el) { el.addEventListener('input', regenerate); });
+  showCanonEl.addEventListener('change', regenerate);
+  document.getElementById('regen').addEventListener('click', function () {
+    seed = (Math.random() * 0xffffffff) >>> 0;
+    jitterRand = mulberry32(seed);
+    for (const k in jitterCache) delete jitterCache[k];
+    regenerate();
+  });
+
+  function serializeState() {
+    const s = { v: 1, seed: seed, taper: +els.taper.value, limb: +els.limb.value, shift: +els.shift.value, canon: showCanonEl.checked, sigma: {} };
+    SYSTEMS.forEach(function (sys) { s.sigma[sys.id] = sys.sigma; });
+    return s;
+  }
+  function applyState(state) {
+    if (!state) return;
+    seed = (state.seed >>> 0) || seed;
+    jitterRand = mulberry32(seed);
+    for (const k in jitterCache) delete jitterCache[k];
+    if (state.taper != null) els.taper.value = state.taper;
+    if (state.limb != null) els.limb.value = state.limb;
+    if (state.shift != null) els.shift.value = state.shift;
+    if (state.canon != null) showCanonEl.checked = !!state.canon;
+    if (state.sigma) SYSTEMS.forEach(function (sys) { if (state.sigma[sys.id] != null) sys.sigma = state.sigma[sys.id]; });
+    renderConditions();
+    regenerate();
+  }
+  function decodeStateFromHash() {
+    const h = window.location.hash;
+    if (!h || h.indexOf('#s=') !== 0) return null;
+    try { return JSON.parse(decodeURIComponent(h.slice(3))); } catch (e) { return null; }
+  }
+  document.getElementById('shareBtn').addEventListener('click', function () {
+    const encoded = encodeURIComponent(JSON.stringify(serializeState()));
+    window.location.hash = 's=' + encoded;
+    const url = window.location.origin + window.location.pathname + window.location.search + '#s=' + encoded;
+    const flash = document.getElementById('shareFlash');
+    (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject())
+      .then(function () { flash.textContent = 'Link copied — same seed, same figure for anyone who opens it.'; })
+      .catch(function () { flash.textContent = 'Could not copy automatically — URL updated in the address bar.'; });
+    setTimeout(function () { flash.textContent = ''; }, 4500);
+  });
+
+  const sharedState = decodeStateFromHash();
+  if (sharedState) applyState(sharedState);
+  resize();
+})();
+</script>
+</body>
+</html>
