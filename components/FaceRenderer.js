@@ -160,7 +160,7 @@ export default function FaceRenderer({ coherenceData }) {
 
     // Clear previous geometry
     while (groupRef.current.children.length > 0) {
-      groupRef.current.removeChild(groupRef.current.children[0]);
+      groupRef.current.remove(groupRef.current.children[0]);
     }
 
     try {
