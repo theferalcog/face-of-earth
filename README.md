@@ -129,10 +129,10 @@ face-of-earth/
    - Interactive, real-time updateable
 
 4. **Interface** (`pages/index.js`):
-   - Fetches coherence data
-   - Passes to renderer
-   - Shows info panel with metrics
-   - Real-time updates
+   - Fetches coherence data, refreshed hourly
+   - Walks the visitor through a narrative flow before showing the Face: why this exists, why it's a graph and not an artwork, the live visualization, what each part of it means, then where the data comes from
+   - Raw scores, full methodology, and version notes live behind the ℹ️ info panel for anyone who wants to go deeper
+   - Real-time updates as new data arrives
 
 ---
 
@@ -301,11 +301,11 @@ This code is in the public domain. Use, modify, deploy freely.
 
 ### Data Updates
 
-Data is cached hourly. To force refresh:
+`/api/coherence` computes scores fresh on every request — there's no server-side cache to bust. The browser refetches it automatically every hour (`pages/index.js`); to force an earlier refresh, just call it directly:
 
 ```javascript
 // In browser console:
-fetch('/api/coherence?cache=bust')
+fetch('/api/coherence').then(r => r.json()).then(console.log)
 ```
 
 ### Monitoring
