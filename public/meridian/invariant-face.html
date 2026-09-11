@@ -213,6 +213,19 @@
   .legend { display: flex; gap: 14px; flex-wrap: wrap; }
   .legend-item { display: flex; align-items: center; gap: 6px; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 9.5px; color: var(--dim); text-transform: uppercase; }
   .swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+  .gallery-note {
+    width: 100%; background: var(--blueprint-2); border: 1px solid var(--grid); color: var(--line);
+    font-family: 'Work Sans', ui-sans-serif, sans-serif; font-size: 11px; padding: 8px; resize: vertical;
+  }
+  .gallery-note:focus-visible { outline: 2px solid var(--coherent); outline-offset: 1px; }
+  .gallery-list { display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto; }
+  .gallery-item { border: 1px solid var(--grid); background: var(--blueprint-2); padding: 8px; display: flex; flex-direction: column; gap: 5px; }
+  .gallery-item .note-text { font-size: 11px; color: var(--line); line-height: 1.4; }
+  .gallery-item .meta-row { display: flex; align-items: center; justify-content: space-between; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 9px; color: var(--faint); text-transform: uppercase; }
+  .gallery-item button { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 9.5px; text-transform: uppercase; background: var(--panel); border: 1px solid var(--grid); color: var(--dim); padding: 5px 8px; cursor: pointer; }
+  .gallery-item button:hover { color: var(--coherent); border-color: var(--coherent); }
+  .gallery-empty { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 10px; color: var(--faint); }
 </style>
 </head>
 <body>
@@ -287,6 +300,22 @@
       <div class="hint">The link encodes every σ, signal and structure value plus the seed — anyone who opens it sees this exact plate, deterministically. No trained model, no account.</div>
     </div>
 
+    <hr class="divider">
+
+    <div class="group" id="gallery-group" hidden>
+      <div class="section-label">Gallery <span class="note">shared corrections</span></div>
+      <div class="field">
+        <div class="field-label"><span>Memory influence</span><b id="v-mem">0.00</b></div>
+        <input type="range" id="memInfluence" min="0" max="1" step="0.02" value="0">
+      </div>
+      <div class="hint">Above 0, new renders blend toward the nearest saved corrections in σ-space — the same slider values produce a different plate depending on what's already been saved. At 0, saved entries are reference only.</div>
+      <textarea id="galleryNote" class="gallery-note" rows="2" placeholder="What did you correct, and why?"></textarea>
+      <button id="saveBtn" class="primary">＋ Save this configuration</button>
+      <div class="flash" id="saveFlash"></div>
+      <div id="galleryList" class="gallery-list"><div class="gallery-empty">No saved corrections yet.</div></div>
+      <div class="hint">Every save keeps this exact configuration plus your note, visible to anyone who opens this page.</div>
+    </div>
+
   </div>
 </main>
 
@@ -313,6 +342,29 @@
   const CRACK_INK = hexToRgb('#06172c');
   const LINE_COL = hexToRgb('#dce8f2');
 
+  // --- Fake volumetric shading: treat the face oval as a lit hemisphere so
+  // flat fills read as a lit surface, not a flat wash. Real diffuse +
+  // Blinn-Phong specular math, applied to a fictitious surface normal - a
+  // genuine step toward "rendered," still nowhere near photographic: no
+  // subsurface scattering, no pore-scale detail, no real material.
+  const LIGHT = (function () {
+    const v = { x: -0.55, y: -0.65, z: 0.55 };
+    const l = Math.hypot(v.x, v.y, v.z);
+    return { x: v.x / l, y: v.y / l, z: v.z / l };
+  })();
+  function shadeAt(px, py, faceCx, faceCy, faceRx, faceRy) {
+    const nx = clamp((px - faceCx) / faceRx, -1, 1);
+    const ny = clamp((py - faceCy) / faceRy, -1, 1);
+    const nz2 = 1 - nx * nx - ny * ny;
+    if (nz2 <= 0) return { diffuse: 0.32, spec: 0 };
+    const nz = Math.sqrt(nz2);
+    const diffuse = 0.35 + clamp(nx * LIGHT.x + ny * LIGHT.y + nz * LIGHT.z, 0, 1) * 0.65;
+    const hx = LIGHT.x, hy = LIGHT.y, hz = LIGHT.z + 1;
+    const hl = Math.hypot(hx, hy, hz);
+    const spec = Math.pow(clamp((nx * hx + ny * hy + nz * hz) / hl, 0, 1), 28);
+    return { diffuse, spec };
+  }
+
   function mulberry32(seed) {
     return function () {
       seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
@@ -320,6 +372,22 @@
       t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
       return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
     };
+  }
+
+  let grainPattern = null;
+  function buildGrainPattern() {
+    const size = 128;
+    const off = document.createElement('canvas');
+    off.width = size; off.height = size;
+    const octx = off.getContext('2d');
+    const gRand = mulberry32(0xa17c9e3d);
+    const imgData = octx.createImageData(size, size);
+    for (let i = 0; i < imgData.data.length; i += 4) {
+      const v = Math.floor(gRand() * 255);
+      imgData.data[i] = v; imgData.data[i + 1] = v; imgData.data[i + 2] = v; imgData.data[i + 3] = 255;
+    }
+    octx.putImageData(imgData, 0, 0);
+    grainPattern = ctx.createPattern(off, 'repeat');
   }
 
   function makeNoise2D(rand) {
@@ -370,6 +438,8 @@
   let seed = (Math.random() * 0xffffffff) >>> 0;
   let W = 0, H = 0, DPR = 1;
   let t0 = performance.now();
+  let memoryBank = [];
+  let memoryInfluence = 0;
 
   const SYSTEMS = [
     { id: 'climate', name: 'Climate', sigma: 0.42 },
@@ -403,12 +473,49 @@
 
   function sigmaOf(id) { return condRefs[id].def.sigma; }
 
+  // --- Case-based blend: pull the rendered value toward the nearest saved
+  // corrections in σ-space. At influence=0 this is a no-op (pure sliders).
+  // Above 0, the SAME slider values render differently depending on what's
+  // been saved to the gallery - the actual bar for this to be more than a
+  // browsable list. ---
+  function currentSigmaVector() {
+    const v = {};
+    SYSTEMS.forEach(function (s) { v[s.id] = s.sigma; });
+    return v;
+  }
+  function sigmaDistance(a, b) {
+    let sum = 0;
+    SYSTEMS.forEach(function (s) { const d = (a[s.id] || 0) - (b[s.id] || 0); sum += d * d; });
+    return Math.sqrt(sum);
+  }
+  function blendedSigma(id) {
+    const raw = sigmaOf(id);
+    if (memoryInfluence <= 0 || memoryBank.length === 0) return raw;
+    const current = currentSigmaVector();
+    const withDist = memoryBank
+      .filter(function (m) { return m && m.state && m.state.sigma; })
+      .map(function (m) { return { sigma: m.state.sigma, d: sigmaDistance(current, m.state.sigma) }; });
+    if (!withDist.length) return raw;
+    withDist.sort(function (a, b) { return a.d - b.d; });
+    const top = withDist.slice(0, Math.min(3, withDist.length));
+    let wSum = 0, valSum = 0;
+    top.forEach(function (t) {
+      const w = 1 / (t.d + 0.05);
+      wSum += w;
+      valSum += w * (t.sigma[id] != null ? t.sigma[id] : raw);
+    });
+    const neighborAvg = wSum > 0 ? valSum / wSum : raw;
+    return lerp(raw, neighborAvg, memoryInfluence);
+  }
+
   function syncConditionReadouts() {
     let sum = 0;
     SYSTEMS.forEach(function (s) {
       const r = condRefs[s.id];
-      r.sig.textContent = 'σ=' + s.sigma.toFixed(2);
-      r.sig.classList.toggle('high', s.sigma >= 0.6);
+      const eff = blendedSigma(s.id);
+      const showEff = memoryInfluence > 0 && memoryBank.length > 0 && Math.abs(eff - s.sigma) > 0.005;
+      r.sig.textContent = showEff ? ('σ=' + s.sigma.toFixed(2) + ' → ' + eff.toFixed(2)) : ('σ=' + s.sigma.toFixed(2));
+      r.sig.classList.toggle('high', eff >= 0.6);
       sum += s.sigma;
     });
     vals.mean.textContent = (sum / SYSTEMS.length).toFixed(3);
@@ -423,7 +530,7 @@
   }
 
   function buildCanon(p) {
-    const govSigma = sigmaOf('governance');
+    const govSigma = blendedSigma('governance');
     const asym = (1 - govSigma) * 0.09;
     vals.asym.textContent = asym.toFixed(3);
     return { jaw: p.jaw, cheek: p.cheek, turn: p.turn, asym: asym };
@@ -487,13 +594,27 @@
     }
   }
 
-  function fillNoiseTint(rect, noiseFn, colorGood, colorBad, sigma, scale) {
+  function fillNoiseTint(rect, noiseFn, colorGood, colorBad, sigma, scale, face) {
     const cell = 5;
     for (let yy = rect.y; yy < rect.y + rect.h; yy += cell) {
       for (let xx = rect.x; xx < rect.x + rect.w; xx += cell) {
         const n = noiseFn(xx * scale, yy * scale);
         const bias = clamp(n * 0.6 + (1 - sigma) * 0.5, 0, 1);
-        const c = mixRgb(colorGood, colorBad, bias);
+        let c = mixRgb(colorGood, colorBad, bias);
+        if (face) {
+          const sh = shadeAt(xx, yy, face.cx, face.cy, face.rx, face.ry);
+          c = [c[0] * sh.diffuse, c[1] * sh.diffuse, c[2] * sh.diffuse];
+          ctx.fillStyle = rgba(c, 0.5);
+          ctx.fillRect(xx, yy, cell, cell);
+          if (sh.spec > 0.08) {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.fillStyle = rgba(SPARK, sh.spec * 0.55);
+            ctx.fillRect(xx, yy, cell, cell);
+            ctx.restore();
+          }
+          continue;
+        }
         ctx.fillStyle = rgba(c, 0.5);
         ctx.fillRect(xx, yy, cell, cell);
       }
@@ -508,15 +629,20 @@
     ctx.fillStyle = '#0d2745';
     ctx.fillRect(0, 0, W, H);
 
-    // faint construction grid across the whole plate
+    // faint construction grid, softened - a cheap depth-of-field cue: the
+    // background sits slightly out of focus behind the crisp foreground plate
+    ctx.save();
+    if (ctx.filter !== undefined) ctx.filter = 'blur(2.5px)';
     ctx.strokeStyle = 'rgba(29,63,102,0.55)';
     ctx.lineWidth = 1;
     for (let gx = 0; gx < W; gx += 28) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
     for (let gy = 0; gy < H; gy += 28) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); }
+    ctx.restore();
 
     const cx = W / 2, cy = H * 0.5;
     const Hpx = Math.min(H * 0.72, W * 1.15);
     const Wcpx = Hpx * 0.74;
+    const face = { cx: cx, cy: cy, rx: Wcpx * 0.28, ry: Hpx * 0.5 };
 
     const p = { jaw: +els.jaw.value, cheek: +els.cheek.value, turn: +els.turn.value };
     const canon = buildCanon(p);
@@ -526,11 +652,25 @@
     const rand = mulberry32(seed ^ 0x9e3779b9);
     const noise = makeNoise2D(rand);
 
-    // base tissue
+    // base tissue - shaded, not flat, so the whole head reads as one lit
+    // volume even outside the coherence-tinted regions
     ctx.save();
     ctx.clip(facePath);
-    ctx.fillStyle = 'rgba(220,232,242,0.06)';
-    ctx.fillRect(cx - Wcpx, cy - Hpx, Wcpx * 2, Hpx * 2);
+    const baseCell = 6;
+    for (let yy = cy - Hpx; yy < cy + Hpx; yy += baseCell) {
+      for (let xx = cx - Wcpx; xx < cx + Wcpx; xx += baseCell) {
+        const sh = shadeAt(xx, yy, face.cx, face.cy, face.rx, face.ry);
+        ctx.fillStyle = rgba([220 * sh.diffuse, 232 * sh.diffuse, 242 * sh.diffuse], 0.09);
+        ctx.fillRect(xx, yy, baseCell, baseCell);
+        if (sh.spec > 0.1) {
+          ctx.save();
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.fillStyle = rgba(SPARK, sh.spec * 0.35);
+          ctx.fillRect(xx, yy, baseCell, baseCell);
+          ctx.restore();
+        }
+      }
+    }
     ctx.restore();
 
     const top = cy - Hpx / 2, bot = cy + Hpx / 2;
@@ -546,37 +686,37 @@
     }
 
     // Climate -> forehead band
-    const climateSigma = sigmaOf('climate');
+    const climateSigma = blendedSigma('climate');
     clippedRegion(regionRect(cx - Wcpx, top, Wcpx * 2, browPx - top), function () {
-      fillNoiseTint(regionRect(cx - Wcpx, top, Wcpx * 2, browPx - top), noise, COHERENT, FRACTURE, climateSigma, 0.05);
+      fillNoiseTint(regionRect(cx - Wcpx, top, Wcpx * 2, browPx - top), noise, COHERENT, FRACTURE, climateSigma, 0.05, face);
       drawCracks(regionRect(cx - Wcpx * 0.9, top, Wcpx * 1.8, browPx - top), noise, Math.round((1 - climateSigma) * 5) + 1, 2, mulberry32(seed + 11), 1);
     });
 
     // Biodiversity -> left cheek (screen-left)
-    const bioSigma = sigmaOf('biodiversity');
+    const bioSigma = blendedSigma('biodiversity');
     clippedRegion(regionRect(cx - Wcpx, browPx, Wcpx, mouthPx - browPx), function () {
-      fillNoiseTint(regionRect(cx - Wcpx, browPx, Wcpx, mouthPx - browPx), noise, COHERENT, FRACTURE, bioSigma, 0.06);
+      fillNoiseTint(regionRect(cx - Wcpx, browPx, Wcpx, mouthPx - browPx), noise, COHERENT, FRACTURE, bioSigma, 0.06, face);
       drawCracks(regionRect(cx - Wcpx * 0.95, browPx, Wcpx * 0.9, mouthPx - browPx), noise, Math.round((1 - bioSigma) * 4) + 1, 2, mulberry32(seed + 23), 0.85);
     });
 
     // Water -> right cheek (screen-right)
-    const waterSigma = sigmaOf('water');
+    const waterSigma = blendedSigma('water');
     clippedRegion(regionRect(cx, browPx, Wcpx, mouthPx - browPx), function () {
       const cool = mixRgb(COHERENT, [79, 180, 255], 0.5);
-      fillNoiseTint(regionRect(cx, browPx, Wcpx, mouthPx - browPx), noise, cool, FRACTURE, waterSigma, 0.06);
+      fillNoiseTint(regionRect(cx, browPx, Wcpx, mouthPx - browPx), noise, cool, FRACTURE, waterSigma, 0.06, face);
       drawCracks(regionRect(cx + Wcpx * 0.05, browPx, Wcpx * 0.9, mouthPx - browPx), noise, Math.round((1 - waterSigma) * 4) + 1, 2, mulberry32(seed + 31), 0.85);
     });
 
     // Soil -> jaw / chin
-    const soilSigma = sigmaOf('soil');
+    const soilSigma = blendedSigma('soil');
     clippedRegion(regionRect(cx - Wcpx, noseBasePx, Wcpx * 2, chinPx - noseBasePx + 12), function () {
       const earth = mixRgb(FRACTURE, [110, 84, 52], 0.4);
-      fillNoiseTint(regionRect(cx - Wcpx, noseBasePx, Wcpx * 2, chinPx - noseBasePx + 12), noise, COHERENT, earth, soilSigma, 0.07);
+      fillNoiseTint(regionRect(cx - Wcpx, noseBasePx, Wcpx * 2, chinPx - noseBasePx + 12), noise, COHERENT, earth, soilSigma, 0.07, face);
       drawCracks(regionRect(cx - Wcpx * 0.85, noseBasePx, Wcpx * 1.7, chinPx - noseBasePx + 10), noise, Math.round((1 - soilSigma) * 6) + 2, 3, mulberry32(seed + 41), 1);
     });
 
     // Energy -> temple rim glow (stroke along the silhouette near eye height)
-    const energySigma = sigmaOf('energy');
+    const energySigma = blendedSigma('energy');
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
     const glowColor = mixRgb(FRACTURE, SPARK, energySigma);
@@ -718,6 +858,19 @@
       ctx.fillText('w/5', cx + 2 * eyeWidth + 4, top - 6);
       ctx.restore();
     }
+
+    // Film grain - real per-pixel luminance noise, not a formula for
+    // sensor noise so much as an honest stand-in for one. Overlaid last,
+    // over everything, the way grain sits on top of an actual photograph.
+    if (!grainPattern) buildGrainPattern();
+    if (grainPattern) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'overlay';
+      ctx.globalAlpha = 0.06;
+      ctx.fillStyle = grainPattern;
+      ctx.fillRect(0, 0, W, H);
+      ctx.restore();
+    }
   }
 
   function currentParams() {
@@ -800,9 +953,78 @@
     setTimeout(function () { flash.textContent = ''; }, 4500);
   });
 
+  // --- Shared correction gallery via the db capability, when granted ---
+  async function initGallery() {
+    if (!window.claude || typeof window.claude.use !== 'function') return;
+    let db = null;
+    try { db = await window.claude.use('db'); } catch (e) { db = null; }
+    if (!db) return; // not granted in this view — share links above still work for everyone
+
+    document.getElementById('gallery-group').hidden = false;
+    const noteEl = document.getElementById('galleryNote');
+    const saveBtn = document.getElementById('saveBtn');
+    const saveFlash = document.getElementById('saveFlash');
+    const listEl = document.getElementById('galleryList');
+    const memEl = document.getElementById('memInfluence');
+    const memVal = document.getElementById('v-mem');
+
+    memEl.addEventListener('input', function () {
+      memoryInfluence = +memEl.value;
+      memVal.textContent = memoryInfluence.toFixed(2);
+      regenerate();
+    });
+
+    saveBtn.addEventListener('click', async function () {
+      const note = noteEl.value.trim();
+      if (!note) {
+        saveFlash.textContent = 'Add a note describing the correction first.';
+        setTimeout(function () { saveFlash.textContent = ''; }, 3000);
+        return;
+      }
+      saveBtn.disabled = true;
+      try {
+        await db.collection('gallery').add({ state: serializeState(), note: note, createdAt: new Date().toISOString() });
+        noteEl.value = '';
+        saveFlash.textContent = 'Saved.';
+      } catch (e) {
+        saveFlash.textContent = 'Could not save: ' + (e && e.code ? e.code : 'unknown error');
+      }
+      saveBtn.disabled = false;
+      setTimeout(function () { saveFlash.textContent = ''; }, 3000);
+    });
+
+    db.collection('gallery').orderBy('createdAt', 'desc').limit(30).onSnapshot(
+      function (snap) {
+        memoryBank = snap.docs.map(function (doc) { return doc.data(); }).filter(function (d) { return d && d.state && d.state.sigma; });
+        regenerate();
+
+        if (snap.empty) { listEl.innerHTML = '<div class="gallery-empty">No saved corrections yet.</div>'; return; }
+        listEl.innerHTML = '';
+        snap.docs.forEach(function (doc) {
+          const data = doc.data();
+          if (!data || !data.state) return;
+          const item = document.createElement('div');
+          item.className = 'gallery-item';
+          const noteText = document.createElement('div'); noteText.className = 'note-text'; noteText.textContent = data.note || '(no note)';
+          const metaRow = document.createElement('div'); metaRow.className = 'meta-row';
+          const when = document.createElement('span'); when.textContent = data.createdAt ? new Date(data.createdAt).toLocaleString() : '';
+          const loadBtn = document.createElement('button'); loadBtn.textContent = 'Load';
+          loadBtn.addEventListener('click', function () { applyState(data.state); });
+          metaRow.append(when, loadBtn);
+          item.append(noteText, metaRow);
+          listEl.appendChild(item);
+        });
+      },
+      function (err) {
+        listEl.innerHTML = '<div class="gallery-empty">Gallery unavailable (' + err.code + ').</div>';
+      }
+    );
+  }
+
   const sharedState = decodeStateFromHash();
   if (sharedState) applyState(sharedState);
   resize();
+  initGallery();
 })();
 </script>
 </body>

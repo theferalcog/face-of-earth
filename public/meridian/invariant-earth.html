@@ -183,6 +183,22 @@
     };
   }
 
+  let grainPattern = null;
+  function buildGrainPattern() {
+    const size = 128;
+    const off = document.createElement('canvas');
+    off.width = size; off.height = size;
+    const octx = off.getContext('2d');
+    const gRand = mulberry32(0xa17c9e3d);
+    const imgData = octx.createImageData(size, size);
+    for (let i = 0; i < imgData.data.length; i += 4) {
+      const v = Math.floor(gRand() * 255);
+      imgData.data[i] = v; imgData.data[i + 1] = v; imgData.data[i + 2] = v; imgData.data[i + 3] = 255;
+    }
+    octx.putImageData(imgData, 0, 0);
+    grainPattern = ctx.createPattern(off, 'repeat');
+  }
+
   function makeNoise2D(rand) {
     const size = 64;
     const grid = new Float32Array(size * size);
@@ -315,9 +331,12 @@
     ctx.fillStyle = '#0d2745';
     ctx.fillRect(0, 0, W, H);
 
+    ctx.save();
+    if (ctx.filter !== undefined) ctx.filter = 'blur(2.5px)';
     ctx.strokeStyle = 'rgba(29,63,102,0.55)'; ctx.lineWidth = 1;
     for (let gx = 0; gx < W; gx += 28) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
     for (let gy = 0; gy < H; gy += 28) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); }
+    ctx.restore();
 
     const cx = W / 2, cy = H / 2;
     const R = Math.min(W, H) * 0.38;
@@ -337,6 +356,12 @@
     const landNoise = makeNoise2D(rand);
     const cloudRand = mulberry32(seed ^ 0x7c9e2b31);
     const cloudNoise = makeNoise2D(cloudRand);
+
+    // Ocean sun-glint: real Blinn-Phong specular, not a borrowed effect -
+    // open water genuinely does this. sunVec is defined in the un-viewed
+    // frame (same as surfacePoint's p); transform it once into the viewed
+    // frame so it lines up with v, the per-cell surface normal used below.
+    const sunView = viewTransform(sunVec);
 
     const landThreshold = lerp(0.62, 0.42, crustSigma); // higher crust sigma -> more land visible, better-defined
     const iceExtentDeg = lerp(14, 38, cryoSigma); // higher cryosphere sigma -> larger, healthier caps
@@ -374,7 +399,8 @@
         color = [color[0] * lit, color[1] * lit, color[2] * lit];
 
         const cloudVal = cloudNoise(lonDeg * 0.05 + rotationRad * 8, latDeg * 0.06);
-        if (cloudVal > cloudThreshold) {
+        const cloudCover = cloudVal > cloudThreshold;
+        if (cloudCover) {
           const cloudAlpha = clamp((cloudVal - cloudThreshold) * 3, 0, 0.85) * lit * 0.9 + 0.05;
           color = mixRgb(color, [235, 240, 245], cloudAlpha);
         }
@@ -382,6 +408,20 @@
         const cellSize = Math.max(1.3, R * 0.052);
         ctx.fillStyle = rgba(color, 1);
         ctx.fillRect(sx - cellSize / 2, sy - cellSize / 2, cellSize, cellSize);
+
+        if (!isLand && !isPolarIce && !cloudCover) {
+          const hx = sunView.x, hy = sunView.y, hz = sunView.z + 1;
+          const hl = Math.hypot(hx, hy, hz);
+          const specDot = clamp((v.x * hx + v.y * hy + v.z * hz) / hl, 0, 1);
+          const spec = Math.pow(specDot, 60) * lit * (0.5 + hydroSigma * 0.5);
+          if (spec > 0.05) {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.fillStyle = rgba(SPARK, clamp(spec, 0, 0.9));
+            ctx.fillRect(sx - cellSize / 2, sy - cellSize / 2, cellSize, cellSize);
+            ctx.restore();
+          }
+        }
       }
     }
 
@@ -463,6 +503,17 @@
       ctx.stroke();
       ctx.setLineDash([]);
       ctx.fillText('PRIME MERIDIAN', cx + 4, cy - R - 6);
+      ctx.restore();
+    }
+
+    // Film grain overlay, same technique as Invariant Face and Invariant Form.
+    if (!grainPattern) buildGrainPattern();
+    if (grainPattern) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'overlay';
+      ctx.globalAlpha = 0.06;
+      ctx.fillStyle = grainPattern;
+      ctx.fillRect(0, 0, W, H);
       ctx.restore();
     }
   }
