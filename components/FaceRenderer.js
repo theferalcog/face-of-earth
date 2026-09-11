@@ -12,6 +12,22 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { calculateFace, renderFaceGeometry } from '../lib/geometry';
 
+const FOV_DEGREES = 75;
+// Everything the scene draws (reference circle, hexagon vertices, tilted
+// eyes) sits within this radius of the origin - see lib/geometry.js.
+const BOUNDING_RADIUS = 110;
+const FRAME_PADDING = 1.15; // breathing room around the edges
+const MIN_ZOOM_DISTANCE = 60; // closest the user can zoom in before clipping
+
+// Distance the camera needs to sit at, for a given aspect ratio, so the
+// whole face is visible - not just the tallest or widest axis.
+function computeFitDistance(aspect) {
+  const halfFovRad = ((FOV_DEGREES * Math.PI) / 180) / 2;
+  const verticalFit = BOUNDING_RADIUS / Math.tan(halfFovRad);
+  const horizontalFit = verticalFit / Math.max(aspect, 0.0001);
+  return Math.max(verticalFit, horizontalFit) * FRAME_PADDING;
+}
+
 export default function FaceRenderer({ coherenceData }) {
   const containerRef = useRef(null);
   const sceneRef = useRef(null);
@@ -26,13 +42,11 @@ export default function FaceRenderer({ coherenceData }) {
     scene.background = new THREE.Color(0x0a0a0a); // Dark background
     sceneRef.current = scene;
 
-    const camera = new THREE.PerspectiveCamera(
-      75,
-      containerRef.current.clientWidth / containerRef.current.clientHeight,
-      0.1,
-      1000
-    );
-    camera.position.z = 250;
+    const aspect = containerRef.current.clientWidth / containerRef.current.clientHeight;
+    const camera = new THREE.PerspectiveCamera(FOV_DEGREES, aspect, 0.1, 1000);
+    let fitDistance = computeFitDistance(aspect);
+    let userZoomed = false;
+    camera.position.z = fitDistance;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(containerRef.current.clientWidth, containerRef.current.clientHeight);
@@ -66,17 +80,60 @@ export default function FaceRenderer({ coherenceData }) {
 
     scene.add(groupRef.current);
 
-    // Handle window resize
+    // Handle window resize - keep the whole face in frame at any viewport
+    // width unless the user has zoomed in, in which case just don't let
+    // them end up zoomed out past what the new aspect ratio can show.
     const handleResize = () => {
       if (!containerRef.current) return;
       const width = containerRef.current.clientWidth;
       const height = containerRef.current.clientHeight;
       camera.aspect = width / height;
+      fitDistance = computeFitDistance(camera.aspect);
+      camera.position.z = userZoomed
+        ? Math.min(camera.position.z, fitDistance)
+        : fitDistance;
       camera.updateProjectionMatrix();
       renderer.setSize(width, height);
     };
 
     window.addEventListener('resize', handleResize);
+
+    // Mouse wheel / trackpad zoom. Zooming out is capped at the "whole
+    // face visible" distance - that's the default, not a limit to escape.
+    const clampZoom = (distance) =>
+      Math.min(fitDistance, Math.max(MIN_ZOOM_DISTANCE, distance));
+
+    const handleWheel = (event) => {
+      event.preventDefault();
+      const next = clampZoom(camera.position.z + event.deltaY * 0.4);
+      camera.position.z = next;
+      userZoomed = next < fitDistance - 0.01;
+    };
+    containerRef.current.addEventListener('wheel', handleWheel, { passive: false });
+
+    // Two-finger pinch zoom for touch devices.
+    let lastPinchDistance = null;
+    const pinchDistance = (touches) => {
+      const dx = touches[0].clientX - touches[1].clientX;
+      const dy = touches[0].clientY - touches[1].clientY;
+      return Math.sqrt(dx * dx + dy * dy);
+    };
+    const handleTouchMove = (event) => {
+      if (event.touches.length !== 2) return;
+      event.preventDefault();
+      const distance = pinchDistance(event.touches);
+      if (lastPinchDistance !== null) {
+        const next = clampZoom(camera.position.z + (lastPinchDistance - distance) * 0.5);
+        camera.position.z = next;
+        userZoomed = next < fitDistance - 0.01;
+      }
+      lastPinchDistance = distance;
+    };
+    const handleTouchEnd = () => {
+      lastPinchDistance = null;
+    };
+    containerRef.current.addEventListener('touchmove', handleTouchMove, { passive: false });
+    containerRef.current.addEventListener('touchend', handleTouchEnd);
 
     // Animation loop
     let animationId;
@@ -88,6 +145,9 @@ export default function FaceRenderer({ coherenceData }) {
 
     return () => {
       window.removeEventListener('resize', handleResize);
+      containerRef.current?.removeEventListener('wheel', handleWheel);
+      containerRef.current?.removeEventListener('touchmove', handleTouchMove);
+      containerRef.current?.removeEventListener('touchend', handleTouchEnd);
       cancelAnimationFrame(animationId);
       renderer.dispose();
       containerRef.current?.removeChild(renderer.domElement);
