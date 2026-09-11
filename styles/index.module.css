@@ -2,12 +2,175 @@
  * FACE OF EARTH v0.1 - Styling
  */
 
-.container {
-  position: relative;
-  width: 100%;
-  height: 100vh;
-  overflow: hidden;
+.page {
   background: #0a0a0a;
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  scroll-snap-type: y proximity;
+}
+
+.narrativeSection {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 1.5rem;
+  scroll-snap-align: start;
+  position: relative;
+}
+
+.vizSection {
+  padding: 0;
+  display: block;
+}
+
+.sectionInner {
+  max-width: 640px;
+  width: 100%;
+  text-align: center;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 0.75rem;
+  color: #4ecdc4;
+  margin-bottom: 1rem;
+}
+
+.hero h1,
+.shock h2,
+.explain h2,
+.evidence h2 {
+  font-size: clamp(1.8rem, 5vw, 3rem);
+  margin-bottom: 1.5rem;
+  background: linear-gradient(135deg, #ff6b6b, #ffa500);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.lede {
+  font-size: 1.15rem;
+  line-height: 1.7;
+  color: #ccc;
+  margin-bottom: 1.5rem;
+}
+
+.leadQuestion {
+  font-size: 1.4rem;
+  color: #fff;
+}
+
+.scrollCue,
+.scrollCueSmall {
+  color: #666;
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  animation: bob 2s ease-in-out infinite;
+}
+
+.scrollCue {
+  margin-top: 3rem;
+}
+
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+}
+
+.vizCaption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  color: #999;
+  font-size: 0.85rem;
+  pointer-events: none;
+}
+
+.systemGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin: 2rem 0;
+  text-align: left;
+}
+
+.systemCard {
+  background: rgba(78, 205, 196, 0.08);
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.systemLabel {
+  display: block;
+  color: #999;
+  font-size: 0.85rem;
+}
+
+.systemScore {
+  display: block;
+  font-size: 1.6rem;
+  color: #4ecdc4;
+  margin: 0.25rem 0;
+}
+
+.systemCard p {
+  color: #ccc;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.readingList {
+  list-style: none;
+  padding: 0;
+  text-align: left;
+  margin: 2rem 0;
+}
+
+.readingList li {
+  color: #ccc;
+  margin: 0.75rem 0;
+  padding-left: 1.5rem;
+  position: relative;
+  line-height: 1.6;
+}
+
+.readingList li:before {
+  content: "→";
+  position: absolute;
+  left: 0;
+  color: #4ecdc4;
+}
+
+.grounding {
+  font-size: 1.2rem;
+  color: #fff;
+  margin-top: 2rem;
+  font-style: italic;
+}
+
+.sourceList {
+  list-style: none;
+  padding: 0;
+  text-align: left;
+  columns: 2;
+  gap: 2rem;
+  margin: 1.5rem 0;
+}
+
+.sourceList li {
+  color: #999;
+  font-size: 0.85rem;
+  margin: 0.4rem 0;
+  break-inside: avoid;
 }
 
 .loadingContainer,
@@ -72,7 +235,7 @@
   color: white;
   font-size: 1.5rem;
   cursor: pointer;
-  z-index: 999;
+  z-index: 1001;
   transition: all 0.3s ease;
   box-shadow: 0 4px 20px rgba(255, 107, 107, 0.3);
 }
@@ -193,6 +356,14 @@
 
   .scoreCard strong {
     font-size: 1.1rem;
+  }
+
+  .systemGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .sourceList {
+    columns: 1;
   }
 }
 
