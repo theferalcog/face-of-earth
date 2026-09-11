@@ -125,7 +125,7 @@
         <input type="range" id="shift" min="-1" max="1" step="0.02" value="0">
       </div>
       <div class="readout">Postural asymmetry (from posture σ) <b id="v-asym">0.000</b></div>
-      <div class="hint">The canon fixes where every joint must sit relative to head-height; these interpolate the space in between. Posture σ, not a slider, sets how far the stance drifts from upright.</div>
+      <div class="hint">The canon fixes where every joint must sit relative to head-height; these interpolate the space in between. Posture σ, not a slider, sets how far the stance drifts from upright. How much these three actually show is set by Detail below - at Detail 0 the shape is the bare canon regardless of where these sliders sit.</div>
     </div>
 
     <hr class="divider">
@@ -136,7 +136,7 @@
         <div class="field-label"><span>Detail</span><b id="v-detail">1.00</b></div>
         <input type="range" id="detail" min="0" max="1" step="0.02" value="1">
       </div>
-      <div class="hint">0 is the pure canon: flat coherence color, no shading. 1 is everything this renderer knows how to do - shading, specular, grain. Still a stylized illustration at any setting, not a photograph.</div>
+      <div class="hint">0 is the bare canon: default shape, flat coherence color, no shading. 1 is your Structure sliders at full effect plus everything this renderer knows how to do - shading, specular, grain. Still a stylized illustration at any setting, not a photograph.</div>
       <div class="field">
         <div class="field-label"><span>Tone</span><b id="v-tone">0.50</b></div>
         <input type="range" id="tone" min="0" max="1" step="0.01" value="0.5">
@@ -461,7 +461,12 @@
     const asym = (1 - postureSigma) * 0.10;
     vals.asym.textContent = asym.toFixed(3);
 
-    const taper = +els.taper.value, limbMul = +els.limb.value, shift = +els.shift.value;
+    // Detail also governs how far shape pulls from the neutral canon
+    // toward whatever the viewer set - same fade as Tone/Warmth.
+    const NEUTRAL_TAPER = 0.68, NEUTRAL_LIMB = 1.00, NEUTRAL_SHIFT = 0;
+    const taper = lerp(NEUTRAL_TAPER, +els.taper.value, renderDetail);
+    const limbMul = lerp(NEUTRAL_LIMB, +els.limb.value, renderDetail);
+    const shift = lerp(NEUTRAL_SHIFT, +els.shift.value, renderDetail);
 
     // Fit an 8-head figure into the stage with margin.
     const marginY = H * 0.06;

@@ -287,7 +287,7 @@
         <input type="range" id="turn" min="-1" max="1" step="0.02" value="0">
       </div>
       <div class="readout">Asymmetry (from governance σ) <b id="v-asym">0.000</b></div>
-      <div class="hint">The canon fixes where landmarks must sit; these three interpolate the space in between. Governance σ, not a slider, sets how far the two sides drift apart.</div>
+      <div class="hint">The canon fixes where landmarks must sit; these three interpolate the space in between. Governance σ, not a slider, sets how far the two sides drift apart. How much these three actually show is set by Detail below - at Detail 0 the shape is the bare canon regardless of where these sliders sit.</div>
     </div>
 
     <hr class="divider">
@@ -298,7 +298,7 @@
         <div class="field-label"><span>Detail</span><b id="v-detail">1.00</b></div>
         <input type="range" id="detail" min="0" max="1" step="0.02" value="1">
       </div>
-      <div class="hint">0 is the pure canon: flat coherence color, no shading. 1 is everything this renderer knows how to do - shading, specular, grain. That ceiling is a stylized illustration, not a photograph, at any setting.</div>
+      <div class="hint">0 is the bare canon: default shape, flat coherence color, no shading. 1 is your Structure sliders at full effect plus everything this renderer knows how to do - shading, specular, grain. That ceiling is a stylized illustration, not a photograph, at any setting.</div>
       <div class="field">
         <div class="field-label"><span>Tone</span><b id="v-tone">0.50</b></div>
         <input type="range" id="tone" min="0" max="1" step="0.01" value="0.5">
@@ -686,7 +686,15 @@
     const Wcpx = Hpx * 0.74;
     const face = { cx: cx, cy: cy, rx: Wcpx * 0.28, ry: Hpx * 0.5 };
 
-    const p = { jaw: +els.jaw.value, cheek: +els.cheek.value, turn: +els.turn.value };
+    // Detail also governs how far shape pulls from the neutral canon
+    // toward whatever the viewer set - 0 is the bare invariant skeleton,
+    // 1 is a fully personalized shape, same fade as Tone/Warmth.
+    const NEUTRAL_JAW = 0.68, NEUTRAL_CHEEK = 1.00, NEUTRAL_TURN = 0;
+    const p = {
+      jaw: lerp(NEUTRAL_JAW, +els.jaw.value, renderDetail),
+      cheek: lerp(NEUTRAL_CHEEK, +els.cheek.value, renderDetail),
+      turn: lerp(NEUTRAL_TURN, +els.turn.value, renderDetail),
+    };
     const canon = buildCanon(p);
     const outline = outlinePoints(canon, cx, cy, Hpx, Wcpx);
     const facePath = pathFromOutline(outline);
