@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invariant Earth</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@600;700;900&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Same committed cyanotype world as Invariant Face and Invariant Form. */
+  :root {
+    --blueprint: #0d2745;
+    --blueprint-2: #123058;
+    --panel: #0a2039;
+    --grid: #1d3f66;
+    --line: #dce8f2;
+    --dim: #7d97b0;
+    --faint: #4d6684;
+    --coherent: #3fb88f;
+    --fracture: #d97b3f;
+    --spark: #ffe9b8;
+    --ink-crack: #06172c;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--blueprint); color: var(--line); font-family: 'Work Sans', ui-sans-serif, system-ui, sans-serif; overflow: hidden; }
+  body { display: grid; grid-template-rows: auto 1fr; height: 100dvh; }
+  header { display: flex; align-items: baseline; justify-content: space-between; gap: 18px; padding: 16px 22px 13px; border-bottom: 1px solid var(--grid); background: linear-gradient(to bottom, var(--panel), var(--blueprint)); flex-wrap: wrap; }
+  .title-block { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .wordmark { font-family: 'Big Shoulders', ui-sans-serif, sans-serif; font-weight: 800; font-size: 22px; letter-spacing: 0.02em; color: var(--line); text-transform: uppercase; }
+  .thesis { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.03em; color: var(--dim); }
+  .header-actions { display: flex; align-items: center; gap: 14px; }
+  .toggle { display: flex; align-items: center; gap: 7px; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--line); cursor: pointer; white-space: nowrap; }
+  .toggle input { accent-color: var(--coherent); width: 14px; height: 14px; }
+  main { display: grid; grid-template-columns: 1fr 308px; min-height: 0; }
+  @media (max-width: 780px) { main { grid-template-columns: 1fr; grid-template-rows: 1fr auto; } #rail { border-top: 1px solid var(--grid); border-left: none; max-height: 46vh; } }
+  #stage { position: relative; min-width: 0; min-height: 0; background: var(--blueprint); }
+  #art { position: absolute; inset: 0; display: block; }
+  #rail { border-left: 1px solid var(--grid); background: var(--panel); padding: 16px 16px 18px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
+  #rail::-webkit-scrollbar { width: 7px; }
+  #rail::-webkit-scrollbar-track { background: var(--panel); }
+  #rail::-webkit-scrollbar-thumb { background: var(--grid); border-radius: 3px; }
+  .section-label { font-family: 'Big Shoulders', ui-sans-serif, sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.05em; color: var(--line); text-transform: uppercase; display: flex; align-items: baseline; justify-content: space-between; }
+  .section-label span.note { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-weight: 400; font-size: 9.5px; letter-spacing: 0; color: var(--faint); text-transform: none; }
+  .divider { height: 1px; background: var(--grid); border: none; margin: 0; }
+  .group { display: flex; flex-direction: column; gap: 10px; }
+  .cond-row { display: flex; flex-direction: column; gap: 5px; }
+  .cond-head { display: flex; align-items: baseline; justify-content: space-between; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.04em; }
+  .cond-head .name { color: var(--line); text-transform: uppercase; }
+  .cond-head .sigma { color: var(--fracture); font-variant-numeric: tabular-nums; }
+  .cond-head .sigma.high { color: var(--coherent); }
+  input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 16px; background: transparent; cursor: pointer; }
+  input[type="range"]::-webkit-slider-runnable-track { height: 3px; background: var(--grid); }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 9px; height: 15px; margin-top: -6px; background: var(--line); border-radius: 1px; box-shadow: 0 0 6px rgba(220, 232, 242, 0.5); }
+  input[type="range"]::-moz-range-track { height: 3px; background: var(--grid); }
+  input[type="range"]::-moz-range-thumb { width: 9px; height: 15px; border: none; background: var(--line); border-radius: 1px; }
+  input[type="range"]:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--coherent); outline-offset: 2px; }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field-label { display: flex; justify-content: space-between; align-items: baseline; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.04em; color: var(--dim); text-transform: uppercase; }
+  .field-label b { font-weight: 500; color: var(--line); font-variant-numeric: tabular-nums; }
+  .readout { display: flex; align-items: center; justify-content: space-between; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.03em; color: var(--dim); }
+  .readout b { color: var(--spark); font-weight: 500; font-variant-numeric: tabular-nums; }
+  button#regen, button.primary { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--line); background: var(--blueprint-2); border: 1px solid var(--grid); padding: 10px 12px; cursor: pointer; }
+  button#regen:hover, button.primary:hover { border-color: var(--coherent); color: var(--coherent); }
+  .hint { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 9.5px; line-height: 1.55; color: var(--faint); }
+  .flash { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 10px; color: var(--coherent); min-height: 13px; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 9.5px; color: var(--dim); text-transform: uppercase; }
+  .swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+  .gallery-note {
+    width: 100%; background: var(--blueprint-2); border: 1px solid var(--grid); color: var(--line);
+    font-family: 'Work Sans', ui-sans-serif, sans-serif; font-size: 11px; padding: 8px; resize: vertical;
+  }
+  .gallery-note:focus-visible { outline: 2px solid var(--coherent); outline-offset: 1px; }
+  .gallery-list { display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto; }
+  .gallery-item { border: 1px solid var(--grid); background: var(--blueprint-2); padding: 8px; display: flex; flex-direction: column; gap: 5px; }
+  .gallery-item .note-text { font-size: 11px; color: var(--line); line-height: 1.4; }
+  .gallery-item .meta-row { display: flex; align-items: center; justify-content: space-between; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 9px; color: var(--faint); text-transform: uppercase; }
+  .gallery-item button { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 9.5px; text-transform: uppercase; background: var(--panel); border: 1px solid var(--grid); color: var(--dim); padding: 5px 8px; cursor: pointer; }
+  .gallery-item button:hover { color: var(--coherent); border-color: var(--coherent); }
+  .gallery-empty { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 10px; color: var(--faint); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-block">
+    <div class="wordmark">Invariant Earth</div>
+    <div class="thesis">axial tilt is 23.4° — everything else is time and weather</div>
+  </div>
+  <div class="header-actions">
+    <label class="toggle"><input type="checkbox" id="showCanon" checked><span>Construction lines</span></label>
+  </div>
+</header>
+
+<main>
+  <div id="stage"><canvas id="art"></canvas></div>
+  <div id="rail">
+
+    <div class="group">
+      <div class="section-label">Conditions <span class="note">by planetary layer</span></div>
+      <div id="conditions"></div>
+      <div class="readout">Mean σ <b id="v-mean">0.000</b></div>
+      <div class="legend">
+        <div class="legend-item"><span class="swatch" style="background:var(--coherent)"></span>coherent</div>
+        <div class="legend-item"><span class="swatch" style="background:var(--fracture)"></span>fractured</div>
+      </div>
+      <div class="hint">Example values, not a live feed — crust, hydrosphere, atmosphere, cryosphere and biosphere each paint one layer; magnetosphere drives the polar glow.</div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="group">
+      <div class="section-label">Structure <span class="note">the blend space</span></div>
+      <div class="field">
+        <div class="field-label"><span>Local time (spin)</span><b id="v-rot">0°</b></div>
+        <input type="range" id="rotation" min="0" max="359" step="1" value="20">
+      </div>
+      <div class="field">
+        <div class="field-label"><span>Season</span><b id="v-season">0.00</b></div>
+        <input type="range" id="season" min="-1" max="1" step="0.02" value="0.3">
+      </div>
+      <div class="hint">The tilt itself never moves — 23.4° is the canon. Spin sets which longitude faces the fixed sun; season sets the sun's latitude, from -23.4° to +23.4°.</div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="group">
+      <div class="readout">Seed <b id="v-seed">00000000</b></div>
+      <button id="regen">↻ New seed</button>
+      <button id="shareBtn" class="primary">⤴ Copy share link</button>
+      <div class="flash" id="shareFlash"></div>
+      <div class="hint">Same mechanic as Invariant Face and Invariant Form — the link encodes every σ, structure value and seed. No trained model, no account.</div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="group" id="gallery-group" hidden>
+      <div class="section-label">Gallery <span class="note">shared corrections</span></div>
+      <div class="field">
+        <div class="field-label"><span>Memory influence</span><b id="v-mem">0.00</b></div>
+        <input type="range" id="memInfluence" min="0" max="1" step="0.02" value="0">
+      </div>
+      <div class="hint">Above 0, new renders blend toward the nearest saved corrections in σ-space — the same slider values produce a different globe depending on what's already been saved.</div>
+      <textarea id="galleryNote" class="gallery-note" rows="2" placeholder="What did you correct, and why?"></textarea>
+      <button id="saveBtn" class="primary">＋ Save this configuration</button>
+      <div class="flash" id="saveFlash"></div>
+      <div id="galleryList" class="gallery-list"><div class="gallery-empty">No saved corrections yet.</div></div>
+      <div class="hint">Every save keeps this exact configuration plus your note, visible to anyone who opens this page.</div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  const canvas = document.getElementById('art');
+  const ctx = canvas.getContext('2d');
+  const stage = document.getElementById('stage');
+  const showCanonEl = document.getElementById('showCanon');
+
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  function smooth(e0, e1, x) { const t = clamp((x - e0) / (e1 - e0), 0, 1); return t * t * (3 - 2 * t); }
+  function mixRgb(c0, c1, t) { return [lerp(c0[0], c1[0], t) | 0, lerp(c0[1], c1[1], t) | 0, lerp(c0[2], c1[2], t) | 0]; }
+  function rgba(c, a) { return 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + a + ')'; }
+  function hexToRgb(h) { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+
+  const COHERENT = hexToRgb('#3fb88f');
+  const FRACTURE = hexToRgb('#d97b3f');
+  const SPARK = hexToRgb('#ffe9b8');
+  const OCEAN = hexToRgb('#12406b');
+  const OCEAN_DEEP = hexToRgb('#0a2647');
+
+  function mulberry32(seed) {
+    return function () {
+      seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function makeNoise2D(rand) {
+    const size = 64;
+    const grid = new Float32Array(size * size);
+    for (let i = 0; i < grid.length; i++) grid[i] = rand();
+    return function (x, y) {
+      const xi = Math.floor(x), yi = Math.floor(y);
+      const xf = x - xi, yf = y - yi;
+      const w = (v) => ((v % size) + size) % size;
+      const g = (i, j) => grid[w(j) * size + w(i)];
+      const s = smooth(0, 1, xf), t = smooth(0, 1, yf);
+      const a = lerp(g(xi, yi), g(xi + 1, yi), s);
+      const b = lerp(g(xi, yi + 1), g(xi + 1, yi + 1), s);
+      return lerp(a, b, t);
+    };
+  }
+
+  // --- The canon: Earth's real axial tilt. Not a convention — a measured
+  // physical constant. Everything else here (spin, season, weather) is the
+  // blend space around that one fixed number. ---
+  const TILT_DEG = 23.4;
+  const TILT_RAD = TILT_DEG * Math.PI / 180;
+
+  const els = { rotation: document.getElementById('rotation'), season: document.getElementById('season') };
+  const vals = {
+    rot: document.getElementById('v-rot'), season: document.getElementById('v-season'),
+    mean: document.getElementById('v-mean'), seed: document.getElementById('v-seed'),
+  };
+
+  let seed = (Math.random() * 0xffffffff) >>> 0;
+  let W = 0, H = 0, DPR = 1;
+  let memoryBank = [];
+  let memoryInfluence = 0;
+
+  const SYSTEMS = [
+    { id: 'crust', name: 'Crust', sigma: 0.48 },
+    { id: 'hydrosphere', name: 'Hydrosphere', sigma: 0.55 },
+    { id: 'atmosphere', name: 'Atmosphere', sigma: 0.50 },
+    { id: 'cryosphere', name: 'Cryosphere', sigma: 0.42 },
+    { id: 'biosphere', name: 'Biosphere', sigma: 0.50 },
+    { id: 'magnetosphere', name: 'Magnetosphere', sigma: 0.55 },
+  ];
+  const condRefs = {};
+
+  function renderConditions() {
+    const el = document.getElementById('conditions');
+    el.innerHTML = '';
+    SYSTEMS.forEach(function (s) {
+      const row = document.createElement('div'); row.className = 'cond-row';
+      const head = document.createElement('div'); head.className = 'cond-head';
+      const name = document.createElement('span'); name.className = 'name'; name.textContent = s.name;
+      const sig = document.createElement('span'); sig.className = 'sigma'; sig.textContent = 'sigma=' + s.sigma.toFixed(2);
+      head.append(name, sig);
+      const input = document.createElement('input');
+      input.type = 'range'; input.min = '0'; input.max = '1'; input.step = '0.01'; input.value = s.sigma;
+      input.addEventListener('input', function () { s.sigma = +input.value; regenerate(); });
+      row.append(head, input);
+      el.appendChild(row);
+      condRefs[s.id] = { sig, input, def: s };
+    });
+  }
+  function sigmaOf(id) { return condRefs[id].def.sigma; }
+
+  function currentSigmaVector() {
+    const v = {};
+    SYSTEMS.forEach(function (s) { v[s.id] = s.sigma; });
+    return v;
+  }
+  function sigmaDistance(a, b) {
+    let sum = 0;
+    SYSTEMS.forEach(function (s) { const d = (a[s.id] || 0) - (b[s.id] || 0); sum += d * d; });
+    return Math.sqrt(sum);
+  }
+  function blendedSigma(id) {
+    const raw = sigmaOf(id);
+    if (memoryInfluence <= 0 || memoryBank.length === 0) return raw;
+    const current = currentSigmaVector();
+    const withDist = memoryBank
+      .filter(function (m) { return m && m.state && m.state.sigma; })
+      .map(function (m) { return { sigma: m.state.sigma, d: sigmaDistance(current, m.state.sigma) }; });
+    if (!withDist.length) return raw;
+    withDist.sort(function (a, b) { return a.d - b.d; });
+    const top = withDist.slice(0, Math.min(3, withDist.length));
+    let wSum = 0, valSum = 0;
+    top.forEach(function (t) {
+      const w = 1 / (t.d + 0.05);
+      wSum += w;
+      valSum += w * (t.sigma[id] != null ? t.sigma[id] : raw);
+    });
+    const neighborAvg = wSum > 0 ? valSum / wSum : raw;
+    return lerp(raw, neighborAvg, memoryInfluence);
+  }
+
+  function syncConditionReadouts() {
+    let sum = 0;
+    SYSTEMS.forEach(function (s) {
+      const r = condRefs[s.id];
+      const eff = blendedSigma(s.id);
+      const showEff = memoryInfluence > 0 && memoryBank.length > 0 && Math.abs(eff - s.sigma) > 0.005;
+      r.sig.textContent = showEff ? ('sigma=' + s.sigma.toFixed(2) + ' -> ' + eff.toFixed(2)) : ('sigma=' + s.sigma.toFixed(2));
+      r.sig.classList.toggle('high', eff >= 0.6);
+      sum += s.sigma;
+    });
+    vals.mean.textContent = (sum / SYSTEMS.length).toFixed(3);
+  }
+
+  // --- Orthographic projection of a point on the unit sphere. lat/lon in
+  // radians. rotationRad simulates spin (time of day): the sun is fixed,
+  // the surface rotates under it. The 23.4 deg viewing tilt is applied
+  // separately, after illumination, so illumination stays physically
+  // correct regardless of how the globe is drawn on screen. ---
+  function surfacePoint(lat, lon, rotationRad) {
+    const lonEff = lon + rotationRad;
+    return {
+      x: Math.cos(lat) * Math.sin(lonEff),
+      y: Math.sin(lat),
+      z: Math.cos(lat) * Math.cos(lonEff),
+    };
+  }
+  function viewTransform(p) {
+    return {
+      x: p.x,
+      y: p.y * Math.cos(TILT_RAD) - p.z * Math.sin(TILT_RAD),
+      z: p.y * Math.sin(TILT_RAD) + p.z * Math.cos(TILT_RAD),
+    };
+  }
+
+  function render() {
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#0d2745';
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.strokeStyle = 'rgba(29,63,102,0.55)'; ctx.lineWidth = 1;
+    for (let gx = 0; gx < W; gx += 28) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
+    for (let gy = 0; gy < H; gy += 28) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); }
+
+    const cx = W / 2, cy = H / 2;
+    const R = Math.min(W, H) * 0.38;
+    const rotationRad = (+els.rotation.value) * Math.PI / 180;
+    const season = +els.season.value;
+    const sunLat = season * TILT_RAD; // subsolar latitude, -23.4deg..+23.4deg
+    const sunVec = { x: 0, y: Math.sin(sunLat), z: Math.cos(sunLat) };
+
+    const crustSigma = blendedSigma('crust');
+    const hydroSigma = blendedSigma('hydrosphere');
+    const atmoSigma = blendedSigma('atmosphere');
+    const cryoSigma = blendedSigma('cryosphere');
+    const bioSigma = blendedSigma('biosphere');
+    const magSigma = blendedSigma('magnetosphere');
+
+    const rand = mulberry32(seed ^ 0x2f9d3a17);
+    const landNoise = makeNoise2D(rand);
+    const cloudRand = mulberry32(seed ^ 0x7c9e2b31);
+    const cloudNoise = makeNoise2D(cloudRand);
+
+    const landThreshold = lerp(0.62, 0.42, crustSigma); // higher crust sigma -> more land visible, better-defined
+    const iceExtentDeg = lerp(14, 38, cryoSigma); // higher cryosphere sigma -> larger, healthier caps
+    const cloudThreshold = lerp(0.72, 0.48, atmoSigma); // higher atmosphere sigma -> clearer skies, less cover
+
+    // --- Sphere surface: coarse lat/lon sample grid, filled as small cells ---
+    const latStep = 3, lonStep = 3;
+    for (let latDeg = -90; latDeg <= 90; latDeg += latStep) {
+      const lat = latDeg * Math.PI / 180;
+      for (let lonDeg = -180; lonDeg < 180; lonDeg += lonStep) {
+        const lon = lonDeg * Math.PI / 180;
+        const p = surfacePoint(lat, lon, rotationRad);
+        const illum = p.x * sunVec.x + p.y * sunVec.y + p.z * sunVec.z;
+        const v = viewTransform(p);
+        if (v.z <= 0.02) continue; // back of the sphere - not visible
+        const sx = cx + v.x * R, sy = cy - v.y * R;
+
+        const isPolarIce = Math.abs(latDeg) > 90 - iceExtentDeg;
+        const landVal = landNoise(lonDeg * 0.045, latDeg * 0.045);
+        const isLand = !isPolarIce && landVal > landThreshold;
+
+        let color;
+        if (isPolarIce) {
+          color = mixRgb([214, 226, 236], FRACTURE, clamp((1 - cryoSigma) * 0.4, 0, 1));
+        } else if (isLand) {
+          const earthy = mixRgb([120, 96, 62], FRACTURE, 0.3);
+          const vivid = mixRgb(COHERENT, [92, 138, 74], 0.4);
+          color = mixRgb(earthy, vivid, bioSigma);
+          if (landVal < landThreshold + 0.03) color = mixRgb(color, FRACTURE, (1 - crustSigma) * 0.5);
+        } else {
+          color = mixRgb(OCEAN_DEEP, OCEAN, clamp(landNoise(lonDeg * 0.02 + 50, latDeg * 0.02 + 50) * 0.6 + hydroSigma * 0.4, 0, 1));
+        }
+
+        const lit = clamp(smooth(-0.12, 0.12, illum), 0.12, 1);
+        color = [color[0] * lit, color[1] * lit, color[2] * lit];
+
+        const cloudVal = cloudNoise(lonDeg * 0.05 + rotationRad * 8, latDeg * 0.06);
+        if (cloudVal > cloudThreshold) {
+          const cloudAlpha = clamp((cloudVal - cloudThreshold) * 3, 0, 0.85) * lit * 0.9 + 0.05;
+          color = mixRgb(color, [235, 240, 245], cloudAlpha);
+        }
+
+        const cellSize = Math.max(1.3, R * 0.052);
+        ctx.fillStyle = rgba(color, 1);
+        ctx.fillRect(sx - cellSize / 2, sy - cellSize / 2, cellSize, cellSize);
+      }
+    }
+
+    // Sphere limb
+    ctx.save();
+    ctx.strokeStyle = 'rgba(220,232,242,0.6)'; ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.stroke();
+    ctx.restore();
+
+    // Magnetosphere -> polar glow (both poles), brighter on the lit pole
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    const glowColor = mixRgb(FRACTURE, SPARK, magSigma);
+    [-1, 1].forEach(function (poleSign) {
+      const p = surfacePoint(poleSign * Math.PI / 2, 0, rotationRad);
+      const v = viewTransform(p);
+      if (v.z <= -0.3) return;
+      const sx = cx + v.x * R, sy = cy - v.y * R;
+      const grad = ctx.createRadialGradient(sx, sy, 0, sx, sy, R * 0.32);
+      grad.addColorStop(0, rgba(glowColor, 0.15 + magSigma * 0.4));
+      grad.addColorStop(1, rgba(glowColor, 0));
+      ctx.fillStyle = grad;
+      ctx.beginPath(); ctx.arc(sx, sy, R * 0.32, 0, Math.PI * 2); ctx.fill();
+    });
+    ctx.restore();
+
+    // Construction lines: equator, tropics, polar circles, prime meridian -
+    // all derived directly from the 23.4 deg canon, not chosen separately.
+    if (showCanonEl.checked) {
+      ctx.save();
+      ctx.font = '9px "IBM Plex Mono", monospace';
+      ctx.fillStyle = 'rgba(255,233,184,0.8)';
+      const lines = [
+        { lat: 0, label: 'EQUATOR' },
+        { lat: TILT_DEG, label: 'TROPIC OF CANCER · 23.4°' },
+        { lat: -TILT_DEG, label: 'TROPIC OF CAPRICORN' },
+        { lat: 90 - TILT_DEG, label: 'ARCTIC CIRCLE · 66.6°' },
+        { lat: -(90 - TILT_DEG), label: 'ANTARCTIC CIRCLE' },
+      ];
+      lines.forEach(function (line) {
+        ctx.beginPath();
+        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = 'rgba(255,233,184,0.55)';
+        ctx.lineWidth = 1;
+        let started = false, lastVisible = false, labelPt = null;
+        for (let lonDeg = -180; lonDeg <= 180; lonDeg += 2) {
+          const p = surfacePoint(line.lat * Math.PI / 180, lonDeg * Math.PI / 180, rotationRad);
+          const v = viewTransform(p);
+          const visible = v.z > 0.02;
+          if (visible) {
+            const sx = cx + v.x * R, sy = cy - v.y * R;
+            if (!started || !lastVisible) { ctx.moveTo(sx, sy); started = true; }
+            else ctx.lineTo(sx, sy);
+            if (!labelPt || sx > labelPt.x) labelPt = { x: sx, y: sy };
+          }
+          lastVisible = visible;
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+        if (labelPt) ctx.fillText(line.label, clamp(labelPt.x + 6, 4, W - 4), labelPt.y + 3);
+      });
+
+      // Prime meridian
+      ctx.beginPath();
+      ctx.setLineDash([4, 4]);
+      ctx.strokeStyle = 'rgba(255,233,184,0.4)';
+      let started2 = false, lastVisible2 = false;
+      for (let latDeg = -90; latDeg <= 90; latDeg += 2) {
+        const p = surfacePoint(latDeg * Math.PI / 180, 0, rotationRad);
+        const v = viewTransform(p);
+        const visible = v.z > 0.02;
+        if (visible) {
+          const sx = cx + v.x * R, sy = cy - v.y * R;
+          if (!started2 || !lastVisible2) { ctx.moveTo(sx, sy); started2 = true; }
+          else ctx.lineTo(sx, sy);
+        }
+        lastVisible2 = visible;
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillText('PRIME MERIDIAN', cx + 4, cy - R - 6);
+      ctx.restore();
+    }
+  }
+
+  function syncReadouts() {
+    vals.rot.textContent = Math.round(+els.rotation.value) + '°';
+    vals.season.textContent = (+els.season.value >= 0 ? '+' : '') + (+els.season.value).toFixed(2);
+    vals.seed.textContent = (seed >>> 0).toString(16).padStart(8, '0');
+  }
+
+  function regenerate() { syncConditionReadouts(); syncReadouts(); render(); }
+
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    const rect = stage.getBoundingClientRect();
+    W = rect.width; H = rect.height;
+    canvas.width = Math.max(1, W * DPR);
+    canvas.height = Math.max(1, H * DPR);
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    regenerate();
+  }
+
+  let resizeT;
+  window.addEventListener('resize', function () { clearTimeout(resizeT); resizeT = setTimeout(resize, 120); });
+
+  renderConditions();
+  els.rotation.addEventListener('input', regenerate);
+  els.season.addEventListener('input', regenerate);
+  showCanonEl.addEventListener('change', regenerate);
+  document.getElementById('regen').addEventListener('click', function () {
+    seed = (Math.random() * 0xffffffff) >>> 0;
+    regenerate();
+  });
+
+  function serializeState() {
+    const s = { v: 1, seed: seed, rotation: +els.rotation.value, season: +els.season.value, canon: showCanonEl.checked, sigma: {} };
+    SYSTEMS.forEach(function (sys) { s.sigma[sys.id] = sys.sigma; });
+    return s;
+  }
+  function applyState(state) {
+    if (!state) return;
+    seed = (state.seed >>> 0) || seed;
+    if (state.rotation != null) els.rotation.value = state.rotation;
+    if (state.season != null) els.season.value = state.season;
+    if (state.canon != null) showCanonEl.checked = !!state.canon;
+    if (state.sigma) SYSTEMS.forEach(function (sys) { if (state.sigma[sys.id] != null) sys.sigma = state.sigma[sys.id]; });
+    renderConditions();
+    regenerate();
+  }
+  function decodeStateFromHash() {
+    const h = window.location.hash;
+    if (!h || h.indexOf('#s=') !== 0) return null;
+    try { return JSON.parse(decodeURIComponent(h.slice(3))); } catch (e) { return null; }
+  }
+  document.getElementById('shareBtn').addEventListener('click', function () {
+    const encoded = encodeURIComponent(JSON.stringify(serializeState()));
+    window.location.hash = 's=' + encoded;
+    const url = window.location.origin + window.location.pathname + window.location.search + '#s=' + encoded;
+    const flash = document.getElementById('shareFlash');
+    (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject())
+      .then(function () { flash.textContent = 'Link copied — same seed, same globe for anyone who opens it.'; })
+      .catch(function () { flash.textContent = 'Could not copy automatically — URL updated in the address bar.'; });
+    setTimeout(function () { flash.textContent = ''; }, 4500);
+  });
+
+  // --- Shared correction gallery via the db capability, when granted ---
+  async function initGallery() {
+    if (!window.claude || typeof window.claude.use !== 'function') return;
+    let db = null;
+    try { db = await window.claude.use('db'); } catch (e) { db = null; }
+    if (!db) return;
+
+    document.getElementById('gallery-group').hidden = false;
+    const noteEl = document.getElementById('galleryNote');
+    const saveBtn = document.getElementById('saveBtn');
+    const saveFlash = document.getElementById('saveFlash');
+    const listEl = document.getElementById('galleryList');
+    const memEl = document.getElementById('memInfluence');
+    const memVal = document.getElementById('v-mem');
+
+    memEl.addEventListener('input', function () {
+      memoryInfluence = +memEl.value;
+      memVal.textContent = memoryInfluence.toFixed(2);
+      regenerate();
+    });
+
+    saveBtn.addEventListener('click', async function () {
+      const note = noteEl.value.trim();
+      if (!note) {
+        saveFlash.textContent = 'Add a note describing the correction first.';
+        setTimeout(function () { saveFlash.textContent = ''; }, 3000);
+        return;
+      }
+      saveBtn.disabled = true;
+      try {
+        await db.collection('gallery').add({ state: serializeState(), note: note, createdAt: new Date().toISOString() });
+        noteEl.value = '';
+        saveFlash.textContent = 'Saved.';
+      } catch (e) {
+        saveFlash.textContent = 'Could not save: ' + (e && e.code ? e.code : 'unknown error');
+      }
+      saveBtn.disabled = false;
+      setTimeout(function () { saveFlash.textContent = ''; }, 3000);
+    });
+
+    db.collection('gallery').orderBy('createdAt', 'desc').limit(30).onSnapshot(
+      function (snap) {
+        memoryBank = snap.docs.map(function (doc) { return doc.data(); }).filter(function (d) { return d && d.state && d.state.sigma; });
+        regenerate();
+
+        if (snap.empty) { listEl.innerHTML = '<div class="gallery-empty">No saved corrections yet.</div>'; return; }
+        listEl.innerHTML = '';
+        snap.docs.forEach(function (doc) {
+          const data = doc.data();
+          if (!data || !data.state) return;
+          const item = document.createElement('div');
+          item.className = 'gallery-item';
+          const noteText = document.createElement('div'); noteText.className = 'note-text'; noteText.textContent = data.note || '(no note)';
+          const metaRow = document.createElement('div'); metaRow.className = 'meta-row';
+          const when = document.createElement('span'); when.textContent = data.createdAt ? new Date(data.createdAt).toLocaleString() : '';
+          const loadBtn = document.createElement('button'); loadBtn.textContent = 'Load';
+          loadBtn.addEventListener('click', function () { applyState(data.state); });
+          metaRow.append(when, loadBtn);
+          item.append(noteText, metaRow);
+          listEl.appendChild(item);
+        });
+      },
+      function (err) {
+        listEl.innerHTML = '<div class="gallery-empty">Gallery unavailable (' + err.code + ').</div>';
+      }
+    );
+  }
+
+  const sharedState = decodeStateFromHash();
+  if (sharedState) applyState(sharedState);
+  resize();
+  initGallery();
+})();
+</script>
+</body>
+</html>
