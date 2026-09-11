@@ -99,7 +99,8 @@ export default function handler(req, res) {
       soil: projectTrajectory(currentScores.soil, systemMomentums[2]),
       water: projectTrajectory(currentScores.water, systemMomentums[3]),
       energy: projectTrajectory(currentScores.energy, systemMomentums[4]),
-      governance: projectTrajectory(currentScores.governance, systemMomentums[5])
+      governance: projectTrajectory(currentScores.governance, systemMomentums[5]),
+      overall: projectedCoherence
     };
     
     // Calculate trajectory momentum (how the momentum itself is changing)
