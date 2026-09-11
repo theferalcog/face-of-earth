@@ -126,6 +126,17 @@
     <hr class="divider">
 
     <div class="group">
+      <div class="section-label">Render <span class="note">geometric ↔ rendered</span></div>
+      <div class="field">
+        <div class="field-label"><span>Detail</span><b id="v-detail">1.00</b></div>
+        <input type="range" id="detail" min="0" max="1" step="0.02" value="1">
+      </div>
+      <div class="hint">0 is flat coherence color with real coastlines and no texture. 1 adds terrain/ocean texture and sun-glint. Coastline shape and cloud cover never change - those are real data and real geography, not rendering style.</div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="group">
       <div class="readout">Seed <b id="v-seed">00000000</b></div>
       <button id="regen">↻ New seed</button>
       <button id="shareBtn" class="primary">⤴ Copy share link</button>
@@ -249,16 +260,17 @@
   const TILT_DEG = 23.4;
   const TILT_RAD = TILT_DEG * Math.PI / 180;
 
-  const els = { rotation: document.getElementById('rotation'), season: document.getElementById('season') };
+  const els = { rotation: document.getElementById('rotation'), season: document.getElementById('season'), detail: document.getElementById('detail') };
   const vals = {
     rot: document.getElementById('v-rot'), season: document.getElementById('v-season'),
-    mean: document.getElementById('v-mean'), seed: document.getElementById('v-seed'),
+    mean: document.getElementById('v-mean'), seed: document.getElementById('v-seed'), detail: document.getElementById('v-detail'),
   };
 
   let seed = (Math.random() * 0xffffffff) >>> 0;
   let W = 0, H = 0, DPR = 1;
   let memoryBank = [];
   let memoryInfluence = 0;
+  let renderDetail = 1;
 
   const SYSTEMS = [
     { id: 'crust', name: 'Crust', sigma: 0.48 },
@@ -421,9 +433,10 @@
           const earthy = mixRgb([120, 96, 62], FRACTURE, 0.3);
           const vivid = mixRgb(COHERENT, [92, 138, 74], 0.4);
           color = mixRgb(earthy, vivid, bioSigma);
-          if (landVal < 0.4 + (1 - crustSigma) * 0.3) color = mixRgb(color, FRACTURE, (1 - crustSigma) * 0.5);
+          if (landVal < 0.4 + (1 - crustSigma) * 0.3) color = mixRgb(color, FRACTURE, (1 - crustSigma) * 0.5 * renderDetail);
         } else {
-          color = mixRgb(OCEAN_DEEP, OCEAN, clamp(landNoise(lonDeg * 0.02 + 50, latDeg * 0.02 + 50) * 0.6 + hydroSigma * 0.4, 0, 1));
+          const oceanBias = clamp(landNoise(lonDeg * 0.02 + 50, latDeg * 0.02 + 50) * 0.6 * renderDetail + hydroSigma * 0.4, 0, 1);
+          color = mixRgb(OCEAN_DEEP, OCEAN, oceanBias);
         }
 
         const lit = clamp(smooth(-0.12, 0.12, illum), 0.12, 1);
@@ -440,11 +453,11 @@
         ctx.fillStyle = rgba(color, 1);
         ctx.fillRect(sx - cellSize / 2, sy - cellSize / 2, cellSize, cellSize);
 
-        if (!isLand && !isPolarIce && !cloudCover) {
+        if (!isLand && !isPolarIce && !cloudCover && renderDetail > 0.02) {
           const hx = sunView.x, hy = sunView.y, hz = sunView.z + 1;
           const hl = Math.hypot(hx, hy, hz);
           const specDot = clamp((v.x * hx + v.y * hy + v.z * hz) / hl, 0, 1);
-          const spec = Math.pow(specDot, 60) * lit * (0.5 + hydroSigma * 0.5);
+          const spec = Math.pow(specDot, 60) * lit * (0.5 + hydroSigma * 0.5) * renderDetail;
           if (spec > 0.05) {
             ctx.save();
             ctx.globalCompositeOperation = 'lighter';
@@ -539,10 +552,10 @@
 
     // Film grain overlay, same technique as Invariant Face and Invariant Form.
     if (!grainPattern) buildGrainPattern();
-    if (grainPattern) {
+    if (grainPattern && renderDetail > 0.02) {
       ctx.save();
       ctx.globalCompositeOperation = 'overlay';
-      ctx.globalAlpha = 0.06;
+      ctx.globalAlpha = 0.06 * renderDetail;
       ctx.fillStyle = grainPattern;
       ctx.fillRect(0, 0, W, H);
       ctx.restore();
@@ -553,6 +566,8 @@
     vals.rot.textContent = Math.round(+els.rotation.value) + '°';
     vals.season.textContent = (+els.season.value >= 0 ? '+' : '') + (+els.season.value).toFixed(2);
     vals.seed.textContent = (seed >>> 0).toString(16).padStart(8, '0');
+    renderDetail = +els.detail.value;
+    vals.detail.textContent = renderDetail.toFixed(2);
   }
 
   function regenerate() { syncConditionReadouts(); syncReadouts(); render(); }
@@ -575,6 +590,7 @@
   renderConditions();
   els.rotation.addEventListener('input', regenerate);
   els.season.addEventListener('input', regenerate);
+  els.detail.addEventListener('input', regenerate);
   showCanonEl.addEventListener('change', regenerate);
   document.getElementById('regen').addEventListener('click', function () {
     seed = (Math.random() * 0xffffffff) >>> 0;
@@ -582,7 +598,7 @@
   });
 
   function serializeState() {
-    const s = { v: 1, seed: seed, rotation: +els.rotation.value, season: +els.season.value, canon: showCanonEl.checked, sigma: {} };
+    const s = { v: 1, seed: seed, rotation: +els.rotation.value, season: +els.season.value, detail: +els.detail.value, canon: showCanonEl.checked, sigma: {} };
     SYSTEMS.forEach(function (sys) { s.sigma[sys.id] = sys.sigma; });
     return s;
   }
@@ -591,6 +607,7 @@
     seed = (state.seed >>> 0) || seed;
     if (state.rotation != null) els.rotation.value = state.rotation;
     if (state.season != null) els.season.value = state.season;
+    els.detail.value = state.detail != null ? state.detail : 1;
     if (state.canon != null) showCanonEl.checked = !!state.canon;
     if (state.sigma) SYSTEMS.forEach(function (sys) { if (state.sigma[sys.id] != null) sys.sigma = state.sigma[sys.id]; });
     renderConditions();

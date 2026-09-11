@@ -131,6 +131,26 @@
     <hr class="divider">
 
     <div class="group">
+      <div class="section-label">Render <span class="note">geometric ↔ rendered</span></div>
+      <div class="field">
+        <div class="field-label"><span>Detail</span><b id="v-detail">1.00</b></div>
+        <input type="range" id="detail" min="0" max="1" step="0.02" value="1">
+      </div>
+      <div class="hint">0 is the pure canon: flat coherence color, no shading. 1 is everything this renderer knows how to do - shading, specular, grain. Still a stylized illustration at any setting, not a photograph.</div>
+      <div class="field">
+        <div class="field-label"><span>Tone</span><b id="v-tone">0.50</b></div>
+        <input type="range" id="tone" min="0" max="1" step="0.01" value="0.5">
+      </div>
+      <div class="field">
+        <div class="field-label"><span>Warmth</span><b id="v-warmth">0.50</b></div>
+        <input type="range" id="warmth" min="0" max="1" step="0.01" value="0.5">
+      </div>
+      <div class="hint">Set these to represent yourself, not to pick a category - a continuous space, no discrete race option. Nobody's setting is the default; 0.5/0.5 is just the slider midpoint.</div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="group">
       <div class="readout">Seed <b id="v-seed">00000000</b></div>
       <button id="regen">↻ New seed</button>
       <button id="shareBtn" class="primary">⤴ Copy share link</button>
@@ -202,6 +222,19 @@
     return { diffuse, spec };
   }
 
+  // --- Self-representation, not a computed average - same as Invariant
+  // Face. Tone/warmth are set by whoever is looking at this, continuously,
+  // no discrete race categories. 0.5/0.5 is just the slider midpoint.
+  function userToneRgb(tone, warmth) {
+    const anchors = [[255, 224, 196], [224, 172, 126], [141, 85, 36], [58, 34, 24]];
+    const t = clamp(tone, 0, 1) * (anchors.length - 1);
+    const i = Math.min(anchors.length - 2, Math.floor(t));
+    const f = t - i;
+    const base = mixRgb(anchors[i], anchors[i + 1], f);
+    const w = clamp(warmth, 0, 1) - 0.5;
+    return [clamp(base[0] + w * 40, 0, 255), clamp(base[1] + w * 12, 0, 255), clamp(base[2] - w * 40, 0, 255)];
+  }
+
   let grainPattern = null;
   function buildGrainPattern() {
     const size = 128;
@@ -248,12 +281,15 @@
 
   const els = {
     taper: document.getElementById('taper'), limb: document.getElementById('limb'), shift: document.getElementById('shift'),
+    detail: document.getElementById('detail'), tone: document.getElementById('tone'), warmth: document.getElementById('warmth'),
   };
   const vals = {
     taper: document.getElementById('v-taper'), limb: document.getElementById('v-limb'), shift: document.getElementById('v-shift'),
     mean: document.getElementById('v-mean'), asym: document.getElementById('v-asym'), seed: document.getElementById('v-seed'),
+    detail: document.getElementById('v-detail'), tone: document.getElementById('v-tone'), warmth: document.getElementById('v-warmth'),
   };
 
+  let renderDetail = 1;
   let seed = (Math.random() * 0xffffffff) >>> 0;
   let W = 0, H = 0, DPR = 1;
   let memoryBank = [];
@@ -377,16 +413,20 @@
     for (let yy = rect.y; yy < rect.y + rect.h; yy += cell) {
       for (let xx = rect.x; xx < rect.x + rect.w; xx += cell) {
         const n = noiseFn(xx * scale, yy * scale);
-        const bias = clamp(n * 0.6 + (1 - sigma) * 0.5, 0, 1);
+        const flatBias = clamp((1 - sigma) * 0.5, 0, 1);
+        const noisyBias = clamp(n * 0.6 + (1 - sigma) * 0.5, 0, 1);
+        const bias = lerp(flatBias, noisyBias, renderDetail);
         let c = mixRgb(colorGood, colorBad, bias);
         const sh = shadeAt(xx, yy, volCx, volCy, volRx, volRy);
-        c = [c[0] * sh.diffuse, c[1] * sh.diffuse, c[2] * sh.diffuse];
+        const diffuseMul = lerp(1, sh.diffuse, renderDetail);
+        c = [c[0] * diffuseMul, c[1] * diffuseMul, c[2] * diffuseMul];
         ctx.fillStyle = rgba(c, 0.5);
         ctx.fillRect(xx, yy, cell, cell);
-        if (sh.spec > 0.1) {
+        const spec = sh.spec * renderDetail;
+        if (spec > 0.1) {
           ctx.save();
           ctx.globalCompositeOperation = 'lighter';
-          ctx.fillStyle = rgba(SPARK, sh.spec * 0.45);
+          ctx.fillStyle = rgba(SPARK, spec * 0.45);
           ctx.fillRect(xx, yy, cell, cell);
           ctx.restore();
         }
@@ -498,6 +538,12 @@
     // lit volume (a real body has one light source, not one per limb),
     // so the coherence-tinted regions (locally shaded, see fillNoiseTint)
     // sit on top of a figure that already reads as lit, not flat.
+    // detail=0 -> neutral cyanotype wash; rising detail blends toward
+    // whatever tone/warmth the viewer set for themselves. Same reasoning
+    // as Invariant Face: self-representation, not a computed average.
+    const skinRgb = userToneRgb(+els.tone.value, +els.warmth.value);
+    const bodyBaseRgb = [lerp(220, skinRgb[0], renderDetail), lerp(232, skinRgb[1], renderDetail), lerp(242, skinRgb[2], renderDetail)];
+    const bodyBaseAlpha = lerp(0.1, 0.8, renderDetail);
     const bodyCx = cx, bodyCy = top + unit * 4, bodyRx = unit * 1.15, bodyRy = unit * 4;
     const bodyCell = 6;
     [torso, neck, legL.upper, legL.lower, legR.upper, legR.lower, armL.upper, armL.lower, armR.upper, armR.lower].forEach(function (p) {
@@ -505,12 +551,14 @@
       for (let yy = top; yy < top + unit * 8; yy += bodyCell) {
         for (let xx = cx - unit * 1.5; xx < cx + unit * 1.5; xx += bodyCell) {
           const sh = shadeAt(xx, yy, bodyCx, bodyCy, bodyRx, bodyRy);
-          ctx.fillStyle = rgba([220 * sh.diffuse, 232 * sh.diffuse, 242 * sh.diffuse], 0.1);
+          const diffuseMul = lerp(1, sh.diffuse, renderDetail);
+          ctx.fillStyle = rgba([bodyBaseRgb[0] * diffuseMul, bodyBaseRgb[1] * diffuseMul, bodyBaseRgb[2] * diffuseMul], bodyBaseAlpha);
           ctx.fillRect(xx, yy, bodyCell, bodyCell);
-          if (sh.spec > 0.12) {
+          const spec = sh.spec * renderDetail;
+          if (spec > 0.12) {
             ctx.save();
             ctx.globalCompositeOperation = 'lighter';
-            ctx.fillStyle = rgba(SPARK, sh.spec * 0.3);
+            ctx.fillStyle = rgba(SPARK, spec * 0.3);
             ctx.fillRect(xx, yy, bodyCell, bodyCell);
             ctx.restore();
           }
@@ -522,12 +570,14 @@
     for (let yy = headCY - headR; yy < headCY + headR; yy += bodyCell) {
       for (let xx = headCX - headR; xx < headCX + headR; xx += bodyCell) {
         const sh = shadeAt(xx, yy, headCX, headCY, headR, headR);
-        ctx.fillStyle = rgba([220 * sh.diffuse, 232 * sh.diffuse, 242 * sh.diffuse], 0.1);
+        const diffuseMul = lerp(1, sh.diffuse, renderDetail);
+        ctx.fillStyle = rgba([bodyBaseRgb[0] * diffuseMul, bodyBaseRgb[1] * diffuseMul, bodyBaseRgb[2] * diffuseMul], bodyBaseAlpha);
         ctx.fillRect(xx, yy, bodyCell, bodyCell);
-        if (sh.spec > 0.12) {
+        const spec = sh.spec * renderDetail;
+        if (spec > 0.12) {
           ctx.save();
           ctx.globalCompositeOperation = 'lighter';
-          ctx.fillStyle = rgba(SPARK, sh.spec * 0.35);
+          ctx.fillStyle = rgba(SPARK, spec * 0.35);
           ctx.fillRect(xx, yy, bodyCell, bodyCell);
           ctx.restore();
         }
@@ -539,7 +589,7 @@
     const chestSigma = blendedSigma('chest');
     withClip(torso, regionRect(cx - shoulderW * 1.1, shoulderY, shoulderW * 2.2, chestY - shoulderY + 6), function () {
       fillNoiseTint(regionRect(cx - shoulderW * 1.1, shoulderY, shoulderW * 2.2, chestY - shoulderY + 6), noise, COHERENT, FRACTURE, chestSigma, 0.06);
-      drawCracks(regionRect(cx - shoulderW, shoulderY, shoulderW * 2, chestY - shoulderY + 4), Math.round((1 - chestSigma) * 5) + 1, 2, mulberry32(seed + 11), 1);
+      drawCracks(regionRect(cx - shoulderW, shoulderY, shoulderW * 2, chestY - shoulderY + 4), Math.round((1 - chestSigma) * 5) + 1, 2, mulberry32(seed + 11), renderDetail);
     });
 
     // Core (waist to hip)
@@ -547,7 +597,7 @@
     withClip(torso, regionRect(cx - waistW * 1.3, chestY, waistW * 2.6, hipY - chestY + 6), function () {
       const cool = mixRgb(COHERENT, [79, 180, 255], 0.5);
       fillNoiseTint(regionRect(cx - waistW * 1.3, chestY, waistW * 2.6, hipY - chestY + 6), noise, cool, FRACTURE, coreSigma, 0.07);
-      drawCracks(regionRect(cx - waistW * 1.1, chestY, waistW * 2.2, hipY - chestY + 4), Math.round((1 - coreSigma) * 5) + 1, 2, mulberry32(seed + 31), 0.9);
+      drawCracks(regionRect(cx - waistW * 1.1, chestY, waistW * 2.2, hipY - chestY + 4), Math.round((1 - coreSigma) * 5) + 1, 2, mulberry32(seed + 31), 0.9 * renderDetail);
     });
 
     // Vitality -> solar plexus glow
@@ -571,7 +621,7 @@
           fillNoiseTint(regionRect(cx - shoulderW * 2, shoulderY - 4, shoulderW * 4, arm.wy - shoulderY + unit * 0.3), noise, COHERENT, FRACTURE, limbsSigma, 0.08);
         });
       });
-      drawCracks(regionRect(cx + arm.side * shoulderW * 1.5 - unit * 0.3, shoulderY, unit * 0.6, arm.wy - shoulderY), Math.round((1 - limbsSigma) * 3) + 1, 2, mulberry32(seed + 51 + i), 0.85);
+      drawCracks(regionRect(cx + arm.side * shoulderW * 1.5 - unit * 0.3, shoulderY, unit * 0.6, arm.wy - shoulderY), Math.round((1 - limbsSigma) * 3) + 1, 2, mulberry32(seed + 51 + i), 0.85 * renderDetail);
       void bbox;
     });
 
@@ -584,7 +634,7 @@
           fillNoiseTint(regionRect(cx - hipW * 2, hipY - 4, hipW * 4, leg.ay - hipY + unit * 0.3), noise, COHERENT, earth, foundationSigma, 0.06);
         });
       });
-      drawCracks(regionRect(cx + leg.side * unit * 0.3 - unit * 0.35, hipY, unit * 0.7, leg.ay - hipY), Math.round((1 - foundationSigma) * 6) + 2, 3, mulberry32(seed + 71 + i), 1);
+      drawCracks(regionRect(cx + leg.side * unit * 0.3 - unit * 0.35, hipY, unit * 0.7, leg.ay - hipY), Math.round((1 - foundationSigma) * 6) + 2, 3, mulberry32(seed + 71 + i), renderDetail);
     });
 
     // Ink outlines over the tinted fills
@@ -623,10 +673,10 @@
 
     // Film grain overlay, same technique as Invariant Face.
     if (!grainPattern) buildGrainPattern();
-    if (grainPattern) {
+    if (grainPattern && renderDetail > 0.02) {
       ctx.save();
       ctx.globalCompositeOperation = 'overlay';
-      ctx.globalAlpha = 0.06;
+      ctx.globalAlpha = 0.06 * renderDetail;
       ctx.fillStyle = grainPattern;
       ctx.fillRect(0, 0, W, H);
       ctx.restore();
@@ -638,6 +688,10 @@
     vals.limb.textContent = (+els.limb.value).toFixed(2);
     vals.shift.textContent = (+els.shift.value >= 0 ? '+' : '') + (+els.shift.value).toFixed(2);
     vals.seed.textContent = (seed >>> 0).toString(16).padStart(8, '0');
+    renderDetail = +els.detail.value;
+    vals.detail.textContent = renderDetail.toFixed(2);
+    vals.tone.textContent = (+els.tone.value).toFixed(2);
+    vals.warmth.textContent = (+els.warmth.value).toFixed(2);
   }
 
   function regenerate() { syncConditionReadouts(); syncReadouts(); render(); }
@@ -667,7 +721,11 @@
   });
 
   function serializeState() {
-    const s = { v: 1, seed: seed, taper: +els.taper.value, limb: +els.limb.value, shift: +els.shift.value, canon: showCanonEl.checked, sigma: {} };
+    const s = {
+      v: 1, seed: seed, taper: +els.taper.value, limb: +els.limb.value, shift: +els.shift.value,
+      detail: +els.detail.value, tone: +els.tone.value, warmth: +els.warmth.value,
+      canon: showCanonEl.checked, sigma: {},
+    };
     SYSTEMS.forEach(function (sys) { s.sigma[sys.id] = sys.sigma; });
     return s;
   }
@@ -679,6 +737,9 @@
     if (state.taper != null) els.taper.value = state.taper;
     if (state.limb != null) els.limb.value = state.limb;
     if (state.shift != null) els.shift.value = state.shift;
+    els.detail.value = state.detail != null ? state.detail : 1;
+    els.tone.value = state.tone != null ? state.tone : 0.5;
+    els.warmth.value = state.warmth != null ? state.warmth : 0.5;
     if (state.canon != null) showCanonEl.checked = !!state.canon;
     if (state.sigma) SYSTEMS.forEach(function (sys) { if (state.sigma[sys.id] != null) sys.sigma = state.sigma[sys.id]; });
     renderConditions();

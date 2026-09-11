@@ -293,6 +293,26 @@
     <hr class="divider">
 
     <div class="group">
+      <div class="section-label">Render <span class="note">geometric ↔ rendered</span></div>
+      <div class="field">
+        <div class="field-label"><span>Detail</span><b id="v-detail">1.00</b></div>
+        <input type="range" id="detail" min="0" max="1" step="0.02" value="1">
+      </div>
+      <div class="hint">0 is the pure canon: flat coherence color, no shading. 1 is everything this renderer knows how to do - shading, specular, grain. That ceiling is a stylized illustration, not a photograph, at any setting.</div>
+      <div class="field">
+        <div class="field-label"><span>Tone</span><b id="v-tone">0.50</b></div>
+        <input type="range" id="tone" min="0" max="1" step="0.01" value="0.5">
+      </div>
+      <div class="field">
+        <div class="field-label"><span>Warmth</span><b id="v-warmth">0.50</b></div>
+        <input type="range" id="warmth" min="0" max="1" step="0.01" value="0.5">
+      </div>
+      <div class="hint">Set these to represent yourself, not to pick a category - there's no discrete race option anywhere here, only a continuous space. Nobody's setting is the default; 0.5/0.5 is just the slider midpoint. Only shows once Detail is above 0; the coherence-tinted regions (climate, water, soil, biodiversity) stay their data colors regardless.</div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="group">
       <div class="readout">Seed <b id="v-seed">00000000</b></div>
       <button id="regen">↻ New seed</button>
       <button id="shareBtn" class="primary">⤴ Copy share link</button>
@@ -365,6 +385,21 @@
     return { diffuse, spec };
   }
 
+  // --- Self-representation, not a computed average: tone/warmth are set
+  // by whoever is looking at this, continuously, with no discrete race
+  // categories anywhere in the control. Anchors span a broad lightness
+  // range; nobody's setting is "the" default - the default (0.5/0.5) is
+  // just the midpoint of the slider, not a claim about anyone.
+  function userToneRgb(tone, warmth) {
+    const anchors = [[255, 224, 196], [224, 172, 126], [141, 85, 36], [58, 34, 24]];
+    const t = clamp(tone, 0, 1) * (anchors.length - 1);
+    const i = Math.min(anchors.length - 2, Math.floor(t));
+    const f = t - i;
+    const base = mixRgb(anchors[i], anchors[i + 1], f);
+    const w = clamp(warmth, 0, 1) - 0.5;
+    return [clamp(base[0] + w * 40, 0, 255), clamp(base[1] + w * 12, 0, 255), clamp(base[2] - w * 40, 0, 255)];
+  }
+
   function mulberry32(seed) {
     return function () {
       seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
@@ -428,11 +463,13 @@
   const els = {
     jaw: document.getElementById('jaw'), cheek: document.getElementById('cheek'), turn: document.getElementById('turn'),
     traj: document.getElementById('traj'), mom: document.getElementById('mom'),
+    detail: document.getElementById('detail'), tone: document.getElementById('tone'), warmth: document.getElementById('warmth'),
   };
   const vals = {
     jaw: document.getElementById('v-jaw'), cheek: document.getElementById('v-cheek'), turn: document.getElementById('v-turn'),
     traj: document.getElementById('v-traj'), mom: document.getElementById('v-mom'),
     mean: document.getElementById('v-mean'), asym: document.getElementById('v-asym'), seed: document.getElementById('v-seed'),
+    detail: document.getElementById('v-detail'), tone: document.getElementById('v-tone'), warmth: document.getElementById('v-warmth'),
   };
 
   let seed = (Math.random() * 0xffffffff) >>> 0;
@@ -440,6 +477,7 @@
   let t0 = performance.now();
   let memoryBank = [];
   let memoryInfluence = 0;
+  let renderDetail = 1;
 
   const SYSTEMS = [
     { id: 'climate', name: 'Climate', sigma: 0.42 },
@@ -599,17 +637,21 @@
     for (let yy = rect.y; yy < rect.y + rect.h; yy += cell) {
       for (let xx = rect.x; xx < rect.x + rect.w; xx += cell) {
         const n = noiseFn(xx * scale, yy * scale);
-        const bias = clamp(n * 0.6 + (1 - sigma) * 0.5, 0, 1);
+        const flatBias = clamp((1 - sigma) * 0.5, 0, 1);
+        const noisyBias = clamp(n * 0.6 + (1 - sigma) * 0.5, 0, 1);
+        const bias = lerp(flatBias, noisyBias, renderDetail);
         let c = mixRgb(colorGood, colorBad, bias);
         if (face) {
           const sh = shadeAt(xx, yy, face.cx, face.cy, face.rx, face.ry);
-          c = [c[0] * sh.diffuse, c[1] * sh.diffuse, c[2] * sh.diffuse];
+          const diffuseMul = lerp(1, sh.diffuse, renderDetail);
+          c = [c[0] * diffuseMul, c[1] * diffuseMul, c[2] * diffuseMul];
           ctx.fillStyle = rgba(c, 0.5);
           ctx.fillRect(xx, yy, cell, cell);
-          if (sh.spec > 0.08) {
+          const spec = sh.spec * renderDetail;
+          if (spec > 0.08) {
             ctx.save();
             ctx.globalCompositeOperation = 'lighter';
-            ctx.fillStyle = rgba(SPARK, sh.spec * 0.55);
+            ctx.fillStyle = rgba(SPARK, spec * 0.55);
             ctx.fillRect(xx, yy, cell, cell);
             ctx.restore();
           }
@@ -653,19 +695,28 @@
     const noise = makeNoise2D(rand);
 
     // base tissue - shaded, not flat, so the whole head reads as one lit
-    // volume even outside the coherence-tinted regions
+    // volume even outside the coherence-tinted regions (those stay teal/
+    // orange data colors regardless of detail - they encode sigma, not
+    // appearance). At detail=0 this is the neutral cyanotype wash; as
+    // detail rises it blends toward whatever tone/warmth the viewer set
+    // for themselves - self-representation, not a computed "average."
+    const skinRgb = userToneRgb(+els.tone.value, +els.warmth.value);
+    const baseRgb = [lerp(220, skinRgb[0], renderDetail), lerp(232, skinRgb[1], renderDetail), lerp(242, skinRgb[2], renderDetail)];
+    const baseAlpha = lerp(0.09, 0.82, renderDetail);
     ctx.save();
     ctx.clip(facePath);
     const baseCell = 6;
     for (let yy = cy - Hpx; yy < cy + Hpx; yy += baseCell) {
       for (let xx = cx - Wcpx; xx < cx + Wcpx; xx += baseCell) {
         const sh = shadeAt(xx, yy, face.cx, face.cy, face.rx, face.ry);
-        ctx.fillStyle = rgba([220 * sh.diffuse, 232 * sh.diffuse, 242 * sh.diffuse], 0.09);
+        const diffuseMul = lerp(1, sh.diffuse, renderDetail);
+        ctx.fillStyle = rgba([baseRgb[0] * diffuseMul, baseRgb[1] * diffuseMul, baseRgb[2] * diffuseMul], baseAlpha);
         ctx.fillRect(xx, yy, baseCell, baseCell);
-        if (sh.spec > 0.1) {
+        const spec = sh.spec * renderDetail;
+        if (spec > 0.1) {
           ctx.save();
           ctx.globalCompositeOperation = 'lighter';
-          ctx.fillStyle = rgba(SPARK, sh.spec * 0.35);
+          ctx.fillStyle = rgba(SPARK, spec * 0.35);
           ctx.fillRect(xx, yy, baseCell, baseCell);
           ctx.restore();
         }
@@ -689,14 +740,14 @@
     const climateSigma = blendedSigma('climate');
     clippedRegion(regionRect(cx - Wcpx, top, Wcpx * 2, browPx - top), function () {
       fillNoiseTint(regionRect(cx - Wcpx, top, Wcpx * 2, browPx - top), noise, COHERENT, FRACTURE, climateSigma, 0.05, face);
-      drawCracks(regionRect(cx - Wcpx * 0.9, top, Wcpx * 1.8, browPx - top), noise, Math.round((1 - climateSigma) * 5) + 1, 2, mulberry32(seed + 11), 1);
+      drawCracks(regionRect(cx - Wcpx * 0.9, top, Wcpx * 1.8, browPx - top), noise, Math.round((1 - climateSigma) * 5) + 1, 2, mulberry32(seed + 11), renderDetail);
     });
 
     // Biodiversity -> left cheek (screen-left)
     const bioSigma = blendedSigma('biodiversity');
     clippedRegion(regionRect(cx - Wcpx, browPx, Wcpx, mouthPx - browPx), function () {
       fillNoiseTint(regionRect(cx - Wcpx, browPx, Wcpx, mouthPx - browPx), noise, COHERENT, FRACTURE, bioSigma, 0.06, face);
-      drawCracks(regionRect(cx - Wcpx * 0.95, browPx, Wcpx * 0.9, mouthPx - browPx), noise, Math.round((1 - bioSigma) * 4) + 1, 2, mulberry32(seed + 23), 0.85);
+      drawCracks(regionRect(cx - Wcpx * 0.95, browPx, Wcpx * 0.9, mouthPx - browPx), noise, Math.round((1 - bioSigma) * 4) + 1, 2, mulberry32(seed + 23), 0.85 * renderDetail);
     });
 
     // Water -> right cheek (screen-right)
@@ -704,7 +755,7 @@
     clippedRegion(regionRect(cx, browPx, Wcpx, mouthPx - browPx), function () {
       const cool = mixRgb(COHERENT, [79, 180, 255], 0.5);
       fillNoiseTint(regionRect(cx, browPx, Wcpx, mouthPx - browPx), noise, cool, FRACTURE, waterSigma, 0.06, face);
-      drawCracks(regionRect(cx + Wcpx * 0.05, browPx, Wcpx * 0.9, mouthPx - browPx), noise, Math.round((1 - waterSigma) * 4) + 1, 2, mulberry32(seed + 31), 0.85);
+      drawCracks(regionRect(cx + Wcpx * 0.05, browPx, Wcpx * 0.9, mouthPx - browPx), noise, Math.round((1 - waterSigma) * 4) + 1, 2, mulberry32(seed + 31), 0.85 * renderDetail);
     });
 
     // Soil -> jaw / chin
@@ -712,7 +763,7 @@
     clippedRegion(regionRect(cx - Wcpx, noseBasePx, Wcpx * 2, chinPx - noseBasePx + 12), function () {
       const earth = mixRgb(FRACTURE, [110, 84, 52], 0.4);
       fillNoiseTint(regionRect(cx - Wcpx, noseBasePx, Wcpx * 2, chinPx - noseBasePx + 12), noise, COHERENT, earth, soilSigma, 0.07, face);
-      drawCracks(regionRect(cx - Wcpx * 0.85, noseBasePx, Wcpx * 1.7, chinPx - noseBasePx + 10), noise, Math.round((1 - soilSigma) * 6) + 2, 3, mulberry32(seed + 41), 1);
+      drawCracks(regionRect(cx - Wcpx * 0.85, noseBasePx, Wcpx * 1.7, chinPx - noseBasePx + 10), noise, Math.round((1 - soilSigma) * 6) + 2, 3, mulberry32(seed + 41), renderDetail);
     });
 
     // Energy -> temple rim glow (stroke along the silhouette near eye height)
@@ -863,10 +914,10 @@
     // sensor noise so much as an honest stand-in for one. Overlaid last,
     // over everything, the way grain sits on top of an actual photograph.
     if (!grainPattern) buildGrainPattern();
-    if (grainPattern) {
+    if (grainPattern && renderDetail > 0.02) {
       ctx.save();
       ctx.globalCompositeOperation = 'overlay';
-      ctx.globalAlpha = 0.06;
+      ctx.globalAlpha = 0.06 * renderDetail;
       ctx.fillStyle = grainPattern;
       ctx.fillRect(0, 0, W, H);
       ctx.restore();
@@ -885,6 +936,10 @@
     vals.traj.textContent = (p.traj >= 0 ? '+' : '') + p.traj.toFixed(2);
     vals.mom.textContent = (p.mom >= 0 ? '+' : '') + p.mom.toFixed(2);
     vals.seed.textContent = (seed >>> 0).toString(16).padStart(8, '0');
+    renderDetail = +els.detail.value;
+    vals.detail.textContent = renderDetail.toFixed(2);
+    vals.tone.textContent = (+els.tone.value).toFixed(2);
+    vals.warmth.textContent = (+els.warmth.value).toFixed(2);
   }
 
   function regenerate() {
@@ -918,7 +973,11 @@
   });
 
   function serializeState() {
-    const s = { v: 1, seed: seed, jaw: +els.jaw.value, cheek: +els.cheek.value, turn: +els.turn.value, traj: +els.traj.value, mom: +els.mom.value, canon: showCanonEl.checked, sigma: {} };
+    const s = {
+      v: 1, seed: seed, jaw: +els.jaw.value, cheek: +els.cheek.value, turn: +els.turn.value, traj: +els.traj.value, mom: +els.mom.value,
+      detail: +els.detail.value, tone: +els.tone.value, warmth: +els.warmth.value,
+      canon: showCanonEl.checked, sigma: {},
+    };
     SYSTEMS.forEach(function (sys) { s.sigma[sys.id] = sys.sigma; });
     return s;
   }
@@ -932,6 +991,9 @@
     if (state.turn != null) els.turn.value = state.turn;
     if (state.traj != null) els.traj.value = state.traj;
     if (state.mom != null) els.mom.value = state.mom;
+    els.detail.value = state.detail != null ? state.detail : 1;
+    els.tone.value = state.tone != null ? state.tone : 0.5;
+    els.warmth.value = state.warmth != null ? state.warmth : 0.5;
     if (state.canon != null) showCanonEl.checked = !!state.canon;
     if (state.sigma) SYSTEMS.forEach(function (sys) { if (state.sigma[sys.id] != null) sys.sigma = state.sigma[sys.id]; });
     renderConditions();
