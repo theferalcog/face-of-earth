@@ -109,7 +109,9 @@ export default function handler(req, res) {
     );
     
     return res.status(200).json({
-      timestamp: new Date().toISOString(),
+      timestamp: '2026-07-31T00:00:00.000Z',
+      servedAt: new Date().toISOString(),
+      evidenceMode: 'fixed_prototype_reference',
       version: '0.1.0',
       current: {
         scores: currentScores,
@@ -132,7 +134,7 @@ export default function handler(req, res) {
         trajectoryVolatility: trajectoryVolatility
       },
       dataQuality: {
-        note: 'Face of Earth v0.1 - Data accurate as of July 2026',
+        note: 'Face of Earth v0.1 - Fixed prototype inputs; source values have not been independently revalidated',
         limitations: [
           'Coherence calculation uses simplified model',
           'Historical data uses annual snapshots',

@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "project": "The Face of Earth",
+  "canonicalUrl": "https://face-of-earth.vercel.app",
+  "authority": "[AV] \u2014 project owner",
+  "contributors": [
+    "Claude",
+    "ChatGPT / Codex"
+  ],
+  "referenceEdition": "2026-07-31",
+  "restoredFrom": {
+    "version": 58,
+    "commit": "87773f9da0cbc1c19c75a91ff42a4925988263d6"
+  },
+  "collaboration": {
+    "recordLocation": "Share Files/Agents",
+    "rule": "Both agents read the same current record before editing. Preserve original assets and document claims, changes, validation, and unresolved questions. The project owner retains final direction and canonical authority.",
+    "automaticFolderSync": false
+  },
+  "evidenceMode": "canonical_reference",
+  "regionDamage": "illustrative; not localized measured damage",
+  "assets": {
+    "canonical-face-of-earth.png": "4dda705c248c65df487d2d0342ebbda4cd38f8549549bdaa28d2b2bc44093c46",
+    "canonical-planet-derived.png": "df309c2ee8bc962ee5461f62effdb455e9354144573deaf1f1fc5b5fa04498f7",
+    "canonical-bust-face-of-earth.png": "33ff58733e253c9bd1ede6ba46fa919632ca61a82c106098a5508e196050275f"
+  }
+}

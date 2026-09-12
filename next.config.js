@@ -4,7 +4,7 @@ const nextConfig = {
   swcMinify: true,
   compress: true,
   generateEtags: true,
-  pageExtensions: ['js', 'jsx'],
+  pageExtensions: ['js', 'jsx', 'ts', 'tsx'],
   poweredByHeader: false,
   staticPageGenerationTimeout: 1000
 };
