@@ -1,3 +1,7 @@
+# Copy refinement — 12 September 2026
+
+Owner requested natural transitions without repeated explanations. Trimmed evidence introduction, source notes, portrait transition and reference-ledger copy. Preserved observation dates, source links and unresolved-input status. Data values and model unchanged. Rollback: abe931b.
+
 # Evidence update — 12 September 2026
 
 Owner authorized current values and new sources. Added a versioned, publicly inspectable evidence snapshot for all nine systems and a prominent responsive reading panel. Each observation retains its actual period, publication date/precision, publisher, source URL and limitations. Added UN Statistics SDG 2026 and NOAA/BAMS 2025 as supporting sources, and linked the EI 2026 summary directly.

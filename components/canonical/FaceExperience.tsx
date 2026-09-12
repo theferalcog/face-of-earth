@@ -164,7 +164,7 @@ export default function FaceExperience() {
           <div className="status-block" aria-live="polite">
             <div className="status-line"><a className="status-method-link" href="#mathematical-method" onClick={(event) => { event.preventDefault(); openMethod(); }}>{phases[edition.status]} <span aria-hidden="true">↘</span></a><strong>Artwork reference</strong></div>
             <div className="progress"><i style={{ width: `${progress}%` }} /></div>
-            <p>Evidence updated 12 September 2026. The canonical artwork remains the 31 July reference; current observations and their dates are shown below.</p>
+            <p>Evidence updated 12 September 2026. Explore the readings below.</p>
           </div>
 
           <dl className="primary-metrics">
@@ -183,7 +183,7 @@ export default function FaceExperience() {
         <div className="section-heading">
           <p className="eyebrow">Reference edition · 31 July 2026</p>
           <h2>The numbers shape what you see.</h2>
-          <p>The human face may change from one edition to the next. The rules do not. The same planetary evidence always governs the expression, strain, fractures, and tears—so a change in Earth’s face has to begin with a change in Earth.</p>
+          <p>Each system contributes to the expression, fractures and tears. Follow its weight through the portrait.</p>
         </div>
 
         <section className="essential-axiom" aria-labelledby="essential-axiom-title">
@@ -446,7 +446,7 @@ export default function FaceExperience() {
 
           <div className="ledger-intro">
             <div><p className="eyebrow">The open evidence field</p><h3>Every planetary system is a source kernel that never closes.</h3></div>
-            <p>These links identify the reference sources. The displayed values belong to the canonical reconstruction ledger; the linked publications have not been freshly revalidated here. Proposed evidence is reviewed before admission, and corrections remain beside the original record.</p>
+            <p>Sources for the 31 July reference edition. The latest readings appear above; proposals and corrections enter through the review below.</p>
           </div>
 
           <details className="source-contribution">

@@ -9,3 +9,5 @@ Preserve the canonical face, planet, portrait-led layout, and face-to-planet con
 Keep source proposals separate from admitted evidence. Never label fixed reference values as live. Changes to evidence, weights, anchors, or canonical identity require an explicit documented owner decision.
 
 Validate the production build and critical interactions before publishing. Record the exact deployed commit, verification, limitations, and rollback reference. Do not overwrite another agent’s uncommitted work.
+
+Editorial direction from [AV]: let dates, sources and facts carry their meaning. Remove repeated explanations and obvious disclaimers. Use short transitions at each junction, without narrating the whole structure. Retain material limits where they affect interpretation.

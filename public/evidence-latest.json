@@ -19,7 +19,7 @@
       "published": "2026-03-23",
       "publisher": "WMO",
       "sourceUrl": "https://wmo.int/publication-series/state-of-global-climate/state-of-global-climate-2025",
-      "limitations": "Annual consolidated estimate; not a reading for September 2026."
+      "limitations": "Annual consolidated estimate relative to 1850–1900."
     },
     {
       "id": "O",
@@ -31,7 +31,7 @@
       "published": "2026",
       "publisher": "NOAA NCEI / BAMS",
       "sourceUrl": "https://www.ncei.noaa.gov/bams-state-of-climate",
-      "limitations": "The record is verified. An exact anomaly against the protocol’s 1981–2010 baseline is not yet verified, so no current stress score is assigned."
+      "limitations": "The exact anomaly against the model’s 1981–2010 baseline remains unresolved."
     },
     {
       "id": "B",
@@ -43,7 +43,7 @@
       "published": "2024",
       "publisher": "Living Planet Index / ZSL",
       "sourceUrl": "https://www.livingplanetindex.org/about_index",
-      "limitations": "Latest global index located. This is an average population-abundance change, not the percentage of species extinct."
+      "limitations": "Tracks changes in monitored population abundance across species."
     },
     {
       "id": "W",
@@ -55,7 +55,7 @@
       "published": "2026",
       "publisher": "UN Statistics Division · SDG 6",
       "sourceUrl": "https://unstats.un.org/sdgs/report/2026/Goal-06/",
-      "limitations": "Country averages conceal local scarcity. The protocol’s lower anchor equals this rounded value; a zero normalized score would not mean freshwater is unharmed."
+      "limitations": "Country averages conceal local scarcity. This rounded value falls at the model’s lower anchor."
     },
     {
       "id": "F",
@@ -67,7 +67,7 @@
       "published": "2026-07-21",
       "publisher": "FAO · SOFI 2026",
       "sourceUrl": "https://www.fao.org/newsroom/detail/sofi-2026--hunger-not-inevitable--fao-says-as-global-hunger-report-shows-progress/",
-      "limitations": "About 645 million people. This indicator measures hunger; it does not measure soil condition."
+      "limitations": "About 645 million people. Soil condition requires a separate indicator."
     },
     {
       "id": "E",
@@ -79,7 +79,7 @@
       "published": "2026",
       "publisher": "Energy Institute · 2026 Review",
       "sourceUrl": "https://www.energyinst.org/__data/assets/pdf_file/0004/1822009/Statistical-Review-of-World-Energy-2026-Summary-version.pdf",
-      "limitations": "Rounded published share. Total energy supply accounting must be reconciled with the protocol’s primary-energy definition before calculating a comparable stress score or trend."
+      "limitations": "Rounded share. Comparison with the model’s primary-energy measure requires an accounting adjustment."
     },
     {
       "id": "H",
@@ -91,7 +91,7 @@
       "published": "2026-06-11",
       "publisher": "UNHCR · Global Trends 2025",
       "sourceUrl": "https://www.unhcr.org/global-trends",
-      "limitations": "Rounded global total. Displacement categories overlap and must not simply be added together."
+      "limitations": "Rounded total, adjusted for overlapping displacement categories."
     },
     {
       "id": "G",
@@ -103,7 +103,7 @@
       "published": "2026-03-17",
       "publisher": "V-Dem · Democracy Report 2026",
       "sourceUrl": "https://www.v-dem.net/documents/75/V-Dem_Institute_Democracy_Report_2026_lowres.pdf",
-      "limitations": "Measures the population in countries moving toward autocracy, not the population living in all autocracies."
+      "limitations": "Tracks countries moving toward autocracy."
     },
     {
       "id": "T",
@@ -115,7 +115,7 @@
       "published": "2024",
       "publisher": "ITU / UNITAR · Global E-waste Monitor",
       "sourceUrl": "https://ewastemonitor.info/the-global-e-waste-monitor-2024/",
-      "limitations": "Latest global observation located. A projection for 2030 is not a newer measurement."
+      "limitations": "The latest global observation located in this review."
     }
   ]
 }
