@@ -1,0 +1,39 @@
+/* Shared Meridian / Face of Earth interface language. */
+:root {
+  --ink:#f3e3c8; --muted:#c6ad8e; --black:#17110e; --panel:#2a1d16;
+  --line:#6a4932; --gold:#efbc60; --blue:#d98747; --green:#a5ac73; --ember:#d97b3e;
+  --room-walnut:#352318; --room-paper:#f1dfbd; --room-orange:#ee9854;
+  --room-ease:cubic-bezier(.22,.68,.18,1);
+}
+body { background:var(--black); }
+.masthead { background:linear-gradient(180deg,rgba(23,17,14,.85),rgba(23,17,14,.25)); border-color:#b78b5144; }
+.wordmark { font-weight:700; letter-spacing:-.04em; }
+.hero-copy { background:radial-gradient(ellipse at 75% 22%,#6b3f242d,transparent 60%),var(--black); }
+h1 { line-height:.98; letter-spacing:-.045em; }
+h1 em { color:var(--gold); }
+.eyebrow { letter-spacing:.12em; }
+.dek,.hero-story { color:var(--muted); font-size:1rem; line-height:1.8; }
+.hero-truth { color:var(--ink); }
+.status-block p,.primary-metrics dt { color:var(--muted); }
+.primary-metrics { border-radius:16px; overflow:hidden; border-color:var(--line); }
+.primary-metrics div { background:var(--panel); }
+.primary-metrics dd { color:var(--gold); }
+.quiet-button,.human-mosaic-controls button { border-color:#c5965f; border-radius:999px; transition:background .3s var(--room-ease),box-shadow .3s var(--room-ease); }
+.quiet-button:hover,.human-mosaic-controls button:hover { background:#a75d2e33; box-shadow:0 0 22px #efbc6018; }
+.current-evidence { background:linear-gradient(90deg,#20150f,#302016 48%,#20150f); border-color:var(--line); }
+.current-evidence .section-heading p { color:var(--muted); }
+.current-evidence .section-heading .eyebrow { color:var(--gold); }
+.evidence-card { border-radius:18px; border-color:#815b39; background:var(--room-paper); color:#302116; box-shadow:0 8px 24px #0002; }
+.evidence-card h3 { color:#6b3519; font-size:2.15rem; }
+.evidence-card .eyebrow { color:#6b3519; }
+.evidence-card a { color:#773b1a; }
+.evidence-card .evidence-date,.evidence-card .evidence-limit { color:#65513f; }
+.evidence-note { color:var(--muted); }
+.evidence-note strong { color:var(--ink); }
+.human-mosaic { background:radial-gradient(ellipse at 50% 45%,#54352155,transparent 68%),#1b140f; }
+.human-mosaic-frame { border-radius:24px; border-color:var(--line); box-shadow:0 0 75px #e4913620; }
+.progress i,.stress-track i { background:linear-gradient(90deg,#b65b2f,#efbc60); }
+input[type=range] { accent-color:var(--room-orange); }
+.governing-rule { background:radial-gradient(ellipse at center,#543723,var(--black) 72%); }
+:focus-visible { outline:3px solid var(--gold); outline-offset:5px; }
+@media(prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; transition:none!important; } }

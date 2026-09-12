@@ -138,7 +138,7 @@ export default function FaceExperience() {
       <header className="masthead">
         <a className="wordmark" href="#top" aria-label="The Face of Earth home">The Face of Earth</a>
         <a className="edition-mark" href="#current-evidence">Evidence · 12 September 2026 ↓</a>
-        <button className="quiet-button" onClick={openMethod}>View reference edition</button>
+        <button className="quiet-button" onClick={openMethod}>Meet the portrait</button>
       </header>
 
       <section id="top" className="hero">
@@ -152,12 +152,12 @@ export default function FaceExperience() {
         </div>
 
         <div className="hero-copy">
-          <p className="eyebrow">A portrait of a connected world</p>
+          <p className="eyebrow">One planet. Many connections.</p>
           <h1>If you could look Earth in the face,<br /><em>what would you see?</em></h1>
           <div className="dek hero-story">
-            <p>The Face of Earth brings observations from nine planetary systems into one evolving portrait.</p>
-            <p>Explore how climate, water, ecosystems and human activity shape one another. Move from face to planet, then follow the readings into the science behind them.</p>
-            <p className="hero-truth">To thrive is to sustain the relationships that make life possible.</p>
+            <p>Meet the Face of Earth. A portrait shaped by the world we share.</p>
+            <p>Water, weather, living things and human lives meet here. Explore the face, turn toward the planet, and follow whichever connection catches your attention.</p>
+            <p className="hero-truth">Life grows through what it gives to the life around it.</p>
           </div>
 
           <div className="status-block" aria-live="polite">

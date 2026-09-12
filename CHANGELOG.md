@@ -1,3 +1,7 @@
+# Listening room design — 12 September 2026
+
+Added warm walnut, paper, amber and orange interface tokens, softened corners and controls, and welcoming introductory copy. Existing portrait assets, calculations and interactions retained. Meridian artifact source integration remains pending access. Rollback: 81a8c56.
+
 # Opening refinement — 12 September 2026
 
 Owner requested a softer, intellectually inviting introduction. Opening now describes the nine-system portrait and invites exploration from image to evidence. Expressed interdependence positively and aligned the page description. Rollback: e2d5a2b.

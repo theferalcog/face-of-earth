@@ -13,3 +13,5 @@ Validate the production build and critical interactions before publishing. Recor
 Editorial direction from [AV]: let dates, sources and facts carry their meaning. Remove repeated explanations and obvious disclaimers. Use short transitions at each junction, without narrating the whole structure. Retain material limits where they affect interpretation.
 
 Opening tone: invite curiosity about connected systems. Explain the experience concretely, without doomsday framing or presumed reader ignorance. Express interdependence through the conditions that support life.
+
+Visual and voice direction: warm walnut, cream paper, amber and soft orange light; a 1970s listening room with a quietly curious space-instrument feel. Natural, welcoming copy, short local transitions. Preserve data semantics and existing engine features. Shared tokens live in styles/listening-room.css. No added sound or autoplay.
