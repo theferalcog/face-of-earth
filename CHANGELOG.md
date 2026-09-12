@@ -1,3 +1,7 @@
+# Opening refinement — 12 September 2026
+
+Owner requested a softer, intellectually inviting introduction. Opening now describes the nine-system portrait and invites exploration from image to evidence. Expressed interdependence positively and aligned the page description. Rollback: e2d5a2b.
+
 # Copy refinement — 12 September 2026
 
 Owner requested natural transitions without repeated explanations. Trimmed evidence introduction, source notes, portrait transition and reference-ledger copy. Preserved observation dates, source links and unresolved-input status. Data values and model unchanged. Rollback: abe931b.

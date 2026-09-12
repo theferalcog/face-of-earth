@@ -11,3 +11,5 @@ Keep source proposals separate from admitted evidence. Never label fixed referen
 Validate the production build and critical interactions before publishing. Record the exact deployed commit, verification, limitations, and rollback reference. Do not overwrite another agent’s uncommitted work.
 
 Editorial direction from [AV]: let dates, sources and facts carry their meaning. Remove repeated explanations and obvious disclaimers. Use short transitions at each junction, without narrating the whole structure. Retain material limits where they affect interpretation.
+
+Opening tone: invite curiosity about connected systems. Explain the experience concretely, without doomsday framing or presumed reader ignorance. Express interdependence through the conditions that support life.

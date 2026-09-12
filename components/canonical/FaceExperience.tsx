@@ -152,13 +152,12 @@ export default function FaceExperience() {
         </div>
 
         <div className="hero-copy">
-          <p className="eyebrow">Planetary Diagnostics made Human</p>
+          <p className="eyebrow">A portrait of a connected world</p>
           <h1>If you could look Earth in the face,<br /><em>what would you see?</em></h1>
           <div className="dek hero-story">
-            <p>The planet has vital signs. Most of us never see them.</p>
-            <p>Climate, water, living systems, and the conditions we share can feel distant in a chart. A face makes that relationship human.</p>
-            <p>Nine planetary systems shape this portrait. The method shows how their signals become strain, fractures, and tears. The evidence and the choices behind that translation stay open to inspection.</p>
-            <p className="hero-truth">Nothing can truly thrive by destroying what it depends on. What serves one part must leave the whole able to continue.</p>
+            <p>The Face of Earth brings observations from nine planetary systems into one evolving portrait.</p>
+            <p>Explore how climate, water, ecosystems and human activity shape one another. Move from face to planet, then follow the readings into the science behind them.</p>
+            <p className="hero-truth">To thrive is to sustain the relationships that make life possible.</p>
           </div>
 
           <div className="status-block" aria-live="polite">
