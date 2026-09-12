@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import PhenotypeMosaic from "./phenotype-mosaic";
+import CurrentEvidence from "./CurrentEvidence";
 
 type Subsystem = { id: string; name: string; stress: number; confidence: number; trend: number; damage?:number; areaPercent?:number; density?:number; widthPx?:number; polygonPx?:number; branching?:number; angularity?:number; sourceUrl: string; sourceTitle: string; sourceAuthority: string; sourceDate: string | null };
 type Edition = {
@@ -136,7 +137,7 @@ export default function FaceExperience() {
     <main>
       <header className="masthead">
         <a className="wordmark" href="#top" aria-label="The Face of Earth home">The Face of Earth</a>
-        <div className="edition-mark"><span className="live-dot" /> Canonical planetary portrait</div>
+        <a className="edition-mark" href="#current-evidence">Evidence · 12 September 2026 ↓</a>
         <button className="quiet-button" onClick={openMethod}>View reference edition</button>
       </header>
 
@@ -161,24 +162,26 @@ export default function FaceExperience() {
           </div>
 
           <div className="status-block" aria-live="polite">
-            <div className="status-line"><a className="status-method-link" href="#mathematical-method" onClick={(event) => { event.preventDefault(); openMethod(); }}>{phases[edition.status]} <span aria-hidden="true">↘</span></a><strong>{progress}%</strong></div>
+            <div className="status-line"><a className="status-method-link" href="#mathematical-method" onClick={(event) => { event.preventDefault(); openMethod(); }}>{phases[edition.status]} <span aria-hidden="true">↘</span></a><strong>Artwork reference</strong></div>
             <div className="progress"><i style={{ width: `${progress}%` }} /></div>
-            <p>The 31 July 2026 canonical artwork and its declared reference values. This is not a live measurement feed. New evidence must be reviewed before it changes the portrait.</p>
+            <p>Evidence updated 12 September 2026. The canonical artwork remains the 31 July reference; current observations and their dates are shown below.</p>
           </div>
 
           <dl className="primary-metrics">
-            <div><dt>Coherence</dt><dd>{edition.coherence.toFixed(3)}</dd></div>
-            <div><dt>Confidence</dt><dd>{edition.confidence.toFixed(3)}</dd></div>
-            <div><dt>Fracture</dt><dd>{edition.fracture.toFixed(3)}</dd></div>
+            <div><dt>Reference coherence</dt><dd>{edition.coherence.toFixed(3)}</dd></div>
+            <div><dt>Reference confidence</dt><dd>{edition.confidence.toFixed(3)}</dd></div>
+            <div><dt>Reference fracture</dt><dd>{edition.fracture.toFixed(3)}</dd></div>
           </dl>
         </div>
       </section>
+
+      <CurrentEvidence />
 
       <PhenotypeMosaic source={edition.imageUrl} systems={edition.subsystems} momentum={edition.momentum} />
 
       <section className="diagnostic" id="diagnostic">
         <div className="section-heading">
-          <p className="eyebrow">How the portrait takes shape</p>
+          <p className="eyebrow">Reference edition · 31 July 2026</p>
           <h2>The numbers shape what you see.</h2>
           <p>The human face may change from one edition to the next. The rules do not. The same planetary evidence always governs the expression, strain, fractures, and tears—so a change in Earth’s face has to begin with a change in Earth.</p>
         </div>
@@ -193,7 +196,7 @@ export default function FaceExperience() {
         </section>
 
         <nav className="panel-tabs" aria-label="Diagnostic views">
-          {(["state", "method", "restoration", "ledger"] as const).map((item) => <button key={item} className={panel === item ? "active" : ""} onClick={() => setPanel(item)}>{item === "state" ? "Planetary systems" : item === "method" ? "How the math works" : item === "restoration" ? "Restoration mechanism" : "Evidence & sources"}</button>)}
+          {(["state", "method", "restoration", "ledger"] as const).map((item) => <button key={item} className={panel === item ? "active" : ""} onClick={() => setPanel(item)}>{item === "state" ? "Reference systems" : item === "method" ? "How the math works" : item === "restoration" ? "Restoration mechanism" : "Evidence & sources"}</button>)}
         </nav>
 
         {panel === "state" && <div className="state-view">

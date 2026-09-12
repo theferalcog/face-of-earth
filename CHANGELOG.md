@@ -1,3 +1,9 @@
+# Evidence update — 12 September 2026
+
+Owner authorized current values and new sources. Added a versioned, publicly inspectable evidence snapshot for all nine systems and a prominent responsive reading panel. Each observation retains its actual period, publication date/precision, publisher, source URL and limitations. Added UN Statistics SDG 2026 and NOAA/BAMS 2025 as supporting sources, and linked the EI 2026 summary directly.
+
+The current aggregate is withheld: an exact ocean anomaly on the protocol baseline and energy accounting reconciliation remain unresolved. No synthetic current confidence, momentum or damage scores were invented. Canonical art and model values remain explicitly labelled reference values. No weights or anchors changed. Rollback: 6ae98f3.
+
 # Restoration — 12 September 2026
 
 Recovered the original version 58 imagery, composition, nine-system method, Unifying Principle, restoration explanation, evidence references, and Face-to-Planet mosaic. Ported into the existing Vercel Next.js project.

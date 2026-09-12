@@ -162,7 +162,7 @@ export default function PhenotypeMosaic({source,systems,momentum=0}:{source:stri
   const diagnostic=useMemo(()=>{
     const weightedStress=systems.reduce((sum,system)=>sum+(WEIGHTS[system.id]??0)*clamp(system.stress),0);
     const pressures=[...systems].sort((a,b)=>(WEIGHTS[b.id]??0)*clamp(b.stress)-(WEIGHTS[a.id]??0)*clamp(a.stress)).slice(0,3);
-    const evidenceDate=systems.map(system=>system.sourceDate).filter((date):date is string=>Boolean(date)).sort().at(-1)??"current edition";
+    const evidenceDate=systems.map(system=>system.sourceDate).filter((date):date is string=>Boolean(date)).sort().at(-1)??"31 July 2026 reference";
     const damageLogic=resolveDamageLogic(systems,momentum);
     return {coherence:damageLogic.coherence,weightedStress,pressures,evidenceDate,damageLogic};
   },[systems]);
@@ -241,7 +241,7 @@ export default function PhenotypeMosaic({source,systems,momentum=0}:{source:stri
       <div><span>Evidence field</span><strong>{systems.length} reference systems</strong></div>
       <div className="diagnostic-pressures"><span>Largest weighted pressures</span><p>{diagnostic.pressures.map((system,index)=>system.sourceUrl?<a href={system.sourceUrl} target="_blank" rel="noreferrer" key={system.id}>{index+1}. {system.name} · {system.stress.toFixed(3)} ↗</a>:<b key={system.id}>{index+1}. {system.name} · {system.stress.toFixed(3)}</b>)}</p></div>
     </div>
-    <div className="surface-profile" aria-label="Current isomorphic surface damage profile">
+    <div className="surface-profile" aria-label="Canonical reference surface damage profile">
       <div className="surface-profile-head"><div><span>Identical diagnostic lock</span><strong>One damage object · two substrates</strong></div><p>The Planet now receives the Canonical Face’s exact affected area, crack density, width, polygon scale, branching, angularity, fracture, strain and tear-hydrology controls. Only the coordinate surface changes. F {diagnostic.damageLogic.fracture.toFixed(3)} · T {diagnostic.damageLogic.tearHydrology.toFixed(3)} · evidence {diagnostic.evidenceDate}.</p></div>
       <div className="surface-profile-grid">{systems.map(system=>{const [r,g,b]=SURFACE_DAMAGE_COLORS[system.id]??[178,104,62],profile=resolveDamageGeometry(system.stress);return <a href={system.sourceUrl} target="_blank" rel="noreferrer" key={system.id}><i style={{background:`rgb(${r},${g},${b})`}}/><span><b>{system.id} · {system.name}</b><small>{SURFACE_EXPRESSIONS[system.id]??"Whole-system field"} · {profile.areaPercent.toFixed(1)}% rendered coverage</small></span><strong>{profile.damage.toFixed(3)}</strong></a>;})}</div>
     </div>
