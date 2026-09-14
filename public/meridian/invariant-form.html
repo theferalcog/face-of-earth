@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invariant Form</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@600;700;900&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Same committed cyanotype world as Invariant Face — one series, one register. */
+  :root {
+    --blueprint: #0d2745;
+    --blueprint-2: #123058;
+    --panel: #0a2039;
+    --grid: #1d3f66;
+    --line: #dce8f2;
+    --dim: #7d97b0;
+    --faint: #4d6684;
+    --coherent: #3fb88f;
+    --fracture: #d97b3f;
+    --spark: #ffe9b8;
+    --ink-crack: #06172c;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--blueprint); color: var(--line); font-family: 'Work Sans', ui-sans-serif, system-ui, sans-serif; overflow: hidden; }
+  body { display: grid; grid-template-rows: auto 1fr; height: 100dvh; }
+  header { display: flex; align-items: baseline; justify-content: space-between; gap: 18px; padding: 16px 22px 13px; border-bottom: 1px solid var(--grid); background: linear-gradient(to bottom, var(--panel), var(--blueprint)); flex-wrap: wrap; }
+  .title-block { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .wordmark { font-family: 'Big Shoulders', ui-sans-serif, sans-serif; font-weight: 800; font-size: 22px; letter-spacing: 0.02em; color: var(--line); text-transform: uppercase; }
+  .thesis { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.03em; color: var(--dim); }
+  .header-actions { display: flex; align-items: center; gap: 14px; }
+  .toggle { display: flex; align-items: center; gap: 7px; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--line); cursor: pointer; white-space: nowrap; }
+  .toggle input { accent-color: var(--coherent); width: 14px; height: 14px; }
+  main { display: grid; grid-template-columns: 1fr 308px; min-height: 0; }
+  @media (max-width: 780px) { main { grid-template-columns: 1fr; grid-template-rows: 1fr auto; } #rail { border-top: 1px solid var(--grid); border-left: none; max-height: 46vh; } }
+  #stage { position: relative; min-width: 0; min-height: 0; background: var(--blueprint); }
+  #art { position: absolute; inset: 0; display: block; }
+  #rail { border-left: 1px solid var(--grid); background: var(--panel); padding: 16px 16px 18px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
+  #rail::-webkit-scrollbar { width: 7px; }
+  #rail::-webkit-scrollbar-track { background: var(--panel); }
+  #rail::-webkit-scrollbar-thumb { background: var(--grid); border-radius: 3px; }
+  .section-label { font-family: 'Big Shoulders', ui-sans-serif, sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.05em; color: var(--line); text-transform: uppercase; display: flex; align-items: baseline; justify-content: space-between; }
+  .section-label span.note { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-weight: 400; font-size: 9.5px; letter-spacing: 0; color: var(--faint); text-transform: none; }
+  .divider { height: 1px; background: var(--grid); border: none; margin: 0; }
+  .group { display: flex; flex-direction: column; gap: 10px; }
+  .cond-row { display: flex; flex-direction: column; gap: 5px; }
+  .cond-head { display: flex; align-items: baseline; justify-content: space-between; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.04em; }
+  .cond-head .name { color: var(--line); text-transform: uppercase; }
+  .cond-head .sigma { color: var(--fracture); font-variant-numeric: tabular-nums; }
+  .cond-head .sigma.high { color: var(--coherent); }
+  input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 16px; background: transparent; cursor: pointer; }
+  input[type="range"]::-webkit-slider-runnable-track { height: 3px; background: var(--grid); }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 9px; height: 15px; margin-top: -6px; background: var(--line); border-radius: 1px; box-shadow: 0 0 6px rgba(220, 232, 242, 0.5); }
+  input[type="range"]::-moz-range-track { height: 3px; background: var(--grid); }
+  input[type="range"]::-moz-range-thumb { width: 9px; height: 15px; border: none; background: var(--line); border-radius: 1px; }
+  input[type="range"]:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--coherent); outline-offset: 2px; }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field-label { display: flex; justify-content: space-between; align-items: baseline; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.04em; color: var(--dim); text-transform: uppercase; }
+  .field-label b { font-weight: 500; color: var(--line); font-variant-numeric: tabular-nums; }
+  .readout { display: flex; align-items: center; justify-content: space-between; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.03em; color: var(--dim); }
+  .readout b { color: var(--spark); font-weight: 500; font-variant-numeric: tabular-nums; }
+  button#regen, button.primary { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--line); background: var(--blueprint-2); border: 1px solid var(--grid); padding: 10px 12px; cursor: pointer; }
+  button#regen:hover, button.primary:hover { border-color: var(--coherent); color: var(--coherent); }
+  .hint { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 9.5px; line-height: 1.55; color: var(--faint); }
+  .flash { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 10px; color: var(--coherent); min-height: 13px; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 9.5px; color: var(--dim); text-transform: uppercase; }
+  .swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+  .gallery-note {
+    width: 100%; background: var(--blueprint-2); border: 1px solid var(--grid); color: var(--line);
+    font-family: 'Work Sans', ui-sans-serif, sans-serif; font-size: 11px; padding: 8px; resize: vertical;
+  }
+  .gallery-note:focus-visible { outline: 2px solid var(--coherent); outline-offset: 1px; }
+  .gallery-list { display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto; }
+  .gallery-item { border: 1px solid var(--grid); background: var(--blueprint-2); padding: 8px; display: flex; flex-direction: column; gap: 5px; }
+  .gallery-item .note-text { font-size: 11px; color: var(--line); line-height: 1.4; }
+  .gallery-item .meta-row { display: flex; align-items: center; justify-content: space-between; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 9px; color: var(--faint); text-transform: uppercase; }
+  .gallery-item button { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 9.5px; text-transform: uppercase; background: var(--panel); border: 1px solid var(--grid); color: var(--dim); padding: 5px 8px; cursor: pointer; }
+  .gallery-item button:hover { color: var(--coherent); border-color: var(--coherent); }
+  .gallery-empty { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 10px; color: var(--faint); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-block">
+    <div class="wordmark">Invariant Form</div>
+    <div class="thesis">the eight-head canon — arm span equals height, hip is the true center</div>
+  </div>
+  <div class="header-actions">
+    <label class="toggle"><input type="checkbox" id="showCanon" checked><span>Construction lines</span></label>
+  </div>
+</header>
+
+<main>
+  <div id="stage"><canvas id="art"></canvas></div>
+  <div id="rail">
+
+    <div class="group" id="describe-group" hidden>
+      <div class="section-label">Describe <span class="note">maps onto the sliders below</span></div>
+      <textarea id="describeInput" class="gallery-note" rows="2" placeholder="e.g. a slim, tall, warm-toned person"></textarea>
+      <button id="describeBtn" class="primary">⤖ Set sliders from this</button>
+      <div class="flash" id="describeFlash"></div>
+      <div class="hint">Claude reads this and sets only the sliders it can confidently infer - build/taper, limb length, tone/warmth. It can't add hair, clothing, or anything this renderer has no parameter for; unmentioned traits are left wherever they already are.</div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="group">
+      <div class="section-label">Conditions <span class="note">by body region</span></div>
+      <div id="conditions"></div>
+      <div class="readout">Mean σ <b id="v-mean">0.000</b></div>
+      <div class="legend">
+        <div class="legend-item"><span class="swatch" style="background:var(--coherent)"></span>coherent tissue</div>
+        <div class="legend-item"><span class="swatch" style="background:var(--fracture)"></span>fractured tissue</div>
+      </div>
+      <div class="hint">Example values, not a live feed — chest, limbs, core, foundation each paint one region; vitality drives the solar-plexus glow. Posture drives structural symmetry below.</div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="group">
+      <div class="section-label">Structure <span class="note">the blend space</span></div>
+      <div class="field">
+        <div class="field-label"><span>Build (torso taper)</span><b id="v-taper">0.68</b></div>
+        <input type="range" id="taper" min="0.45" max="0.92" step="0.01" value="0.68">
+      </div>
+      <div class="field">
+        <div class="field-label"><span>Limb length</span><b id="v-limb">1.00</b></div>
+        <input type="range" id="limb" min="0.85" max="1.15" step="0.01" value="1.00">
+      </div>
+      <div class="field">
+        <div class="field-label"><span>Weight shift (contrapposto)</span><b id="v-shift">0.00</b></div>
+        <input type="range" id="shift" min="-1" max="1" step="0.02" value="0">
+      </div>
+      <div class="readout">Postural asymmetry (from posture σ) <b id="v-asym">0.000</b></div>
+      <div class="hint">The canon fixes where every joint must sit relative to head-height; these interpolate the space in between. Posture σ, not a slider, sets how far the stance drifts from upright. How much these three actually show is set by Detail below - at Detail 0 the shape is the bare canon regardless of where these sliders sit.</div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="group">
+      <div class="section-label">Render <span class="note">geometric ↔ rendered</span></div>
+      <div class="field">
+        <div class="field-label"><span>Detail</span><b id="v-detail">1.00</b></div>
+        <input type="range" id="detail" min="0" max="1" step="0.02" value="1">
+      </div>
+      <div class="hint">0 is the bare canon: default shape, flat coherence color, no shading. 1 is your Structure sliders at full effect plus everything this renderer knows how to do - shading, specular, grain. Still a stylized illustration at any setting, not a photograph.</div>
+      <div class="field">
+        <div class="field-label"><span>Tone</span><b id="v-tone">0.50</b></div>
+        <input type="range" id="tone" min="0" max="1" step="0.01" value="0.5">
+      </div>
+      <div class="field">
+        <div class="field-label"><span>Warmth</span><b id="v-warmth">0.50</b></div>
+        <input type="range" id="warmth" min="0" max="1" step="0.01" value="0.5">
+      </div>
+      <div class="hint">Set these to represent yourself, not to pick a category - a continuous space, no discrete race option. Nobody's setting is the default; 0.5/0.5 is just the slider midpoint.</div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="group">
+      <div class="readout">Seed <b id="v-seed">00000000</b></div>
+      <button id="regen">↻ New seed</button>
+      <button id="shareBtn" class="primary">⤴ Copy share link</button>
+      <div class="flash" id="shareFlash"></div>
+      <div class="hint">Same mechanic as Invariant Face and Meridian Engine — the link encodes every σ and structure value plus the seed. No trained model, no account.</div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="group" id="gallery-group" hidden>
+      <div class="section-label">Gallery <span class="note">shared corrections</span></div>
+      <div class="field">
+        <div class="field-label"><span>Memory influence</span><b id="v-mem">0.00</b></div>
+        <input type="range" id="memInfluence" min="0" max="1" step="0.02" value="0">
+      </div>
+      <div class="hint">Above 0, new renders blend toward the nearest saved corrections in sigma-space — the same slider values produce a different figure depending on what's already been saved. At 0, saved entries are reference only.</div>
+      <textarea id="galleryNote" class="gallery-note" rows="2" placeholder="What did you correct, and why?"></textarea>
+      <button id="saveBtn" class="primary">＋ Save this configuration</button>
+      <div class="flash" id="saveFlash"></div>
+      <div id="galleryList" class="gallery-list"><div class="gallery-empty">No saved corrections yet.</div></div>
+      <div class="hint">Every save keeps this exact configuration plus your note, visible to anyone who opens this page.</div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  const canvas = document.getElementById('art');
+  const ctx = canvas.getContext('2d');
+  const stage = document.getElementById('stage');
+  const showCanonEl = document.getElementById('showCanon');
+
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  function smooth(e0, e1, x) { const t = clamp((x - e0) / (e1 - e0), 0, 1); return t * t * (3 - 2 * t); }
+  function mixRgb(c0, c1, t) { return [lerp(c0[0], c1[0], t) | 0, lerp(c0[1], c1[1], t) | 0, lerp(c0[2], c1[2], t) | 0]; }
+  function rgba(c, a) { return 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + a + ')'; }
+  function hexToRgb(h) { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+
+  const COHERENT = hexToRgb('#3fb88f');
+  const FRACTURE = hexToRgb('#d97b3f');
+  const SPARK = hexToRgb('#ffe9b8');
+  const CRACK_INK = hexToRgb('#06172c');
+
+  // --- Fake volumetric shading, same model as Invariant Face: a real
+  // diffuse + Blinn-Phong specular pass over a fictitious rounded normal.
+  // Applied per-region here (each limb/torso segment shades against its
+  // own local volume) rather than one global head, since the figure isn't
+  // a single round shape. Genuine step toward "rendered," not toward
+  // photographic - no subsurface scattering, no material, no pores.
+  const LIGHT = (function () {
+    const v = { x: -0.55, y: -0.65, z: 0.55 };
+    const l = Math.hypot(v.x, v.y, v.z);
+    return { x: v.x / l, y: v.y / l, z: v.z / l };
+  })();
+  function shadeAt(px, py, volCx, volCy, volRx, volRy) {
+    const nx = clamp((px - volCx) / volRx, -1, 1);
+    const ny = clamp((py - volCy) / volRy, -1, 1);
+    const nz2 = 1 - nx * nx - ny * ny;
+    if (nz2 <= 0) return { diffuse: 0.32, spec: 0 };
+    const nz = Math.sqrt(nz2);
+    const diffuse = 0.35 + clamp(nx * LIGHT.x + ny * LIGHT.y + nz * LIGHT.z, 0, 1) * 0.65;
+    const hx = LIGHT.x, hy = LIGHT.y, hz = LIGHT.z + 1;
+    const hl = Math.hypot(hx, hy, hz);
+    const spec = Math.pow(clamp((nx * hx + ny * hy + nz * hz) / hl, 0, 1), 28);
+    return { diffuse, spec };
+  }
+
+  // --- Self-representation, not a computed average - same as Invariant
+  // Face. Tone/warmth are set by whoever is looking at this, continuously,
+  // no discrete race categories. 0.5/0.5 is just the slider midpoint.
+  function userToneRgb(tone, warmth) {
+    const anchors = [[255, 224, 196], [224, 172, 126], [141, 85, 36], [58, 34, 24]];
+    const t = clamp(tone, 0, 1) * (anchors.length - 1);
+    const i = Math.min(anchors.length - 2, Math.floor(t));
+    const f = t - i;
+    const base = mixRgb(anchors[i], anchors[i + 1], f);
+    const w = clamp(warmth, 0, 1) - 0.5;
+    return [clamp(base[0] + w * 40, 0, 255), clamp(base[1] + w * 12, 0, 255), clamp(base[2] - w * 40, 0, 255)];
+  }
+
+  let grainPattern = null;
+  function buildGrainPattern() {
+    const size = 128;
+    const off = document.createElement('canvas');
+    off.width = size; off.height = size;
+    const octx = off.getContext('2d');
+    const gRand = mulberry32(0xa17c9e3d);
+    const imgData = octx.createImageData(size, size);
+    for (let i = 0; i < imgData.data.length; i += 4) {
+      const v = Math.floor(gRand() * 255);
+      imgData.data[i] = v; imgData.data[i + 1] = v; imgData.data[i + 2] = v; imgData.data[i + 3] = 255;
+    }
+    octx.putImageData(imgData, 0, 0);
+    grainPattern = ctx.createPattern(off, 'repeat');
+  }
+
+  function mulberry32(seed) {
+    return function () {
+      seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function makeNoise2D(rand) {
+    const size = 64;
+    const grid = new Float32Array(size * size);
+    for (let i = 0; i < grid.length; i++) grid[i] = rand();
+    return function (x, y) {
+      const xi = Math.floor(x), yi = Math.floor(y);
+      const xf = x - xi, yf = y - yi;
+      const w = (v) => ((v % size) + size) % size;
+      const g = (i, j) => grid[w(j) * size + w(i)];
+      const s = smooth(0, 1, xf), t = smooth(0, 1, yf);
+      const a = lerp(g(xi, yi), g(xi + 1, yi), s);
+      const b = lerp(g(xi, yi + 1), g(xi + 1, yi + 1), s);
+      return lerp(a, b, t);
+    };
+  }
+
+  // --- The canon: the eight-head figure. y in head-units, 0 (crown) to 8 (heel). ---
+  const CANON_Y = { crown: 0, chin: 1, shoulder: 1.45, chest: 2.0, waist: 3.0, hip: 4.0, elbow: 3.0, wrist: 4.05, knee: 6.0, calf: 7.0, heel: 8.0 };
+
+  const els = {
+    taper: document.getElementById('taper'), limb: document.getElementById('limb'), shift: document.getElementById('shift'),
+    detail: document.getElementById('detail'), tone: document.getElementById('tone'), warmth: document.getElementById('warmth'),
+  };
+  const vals = {
+    taper: document.getElementById('v-taper'), limb: document.getElementById('v-limb'), shift: document.getElementById('v-shift'),
+    mean: document.getElementById('v-mean'), asym: document.getElementById('v-asym'), seed: document.getElementById('v-seed'),
+    detail: document.getElementById('v-detail'), tone: document.getElementById('v-tone'), warmth: document.getElementById('v-warmth'),
+  };
+
+  let renderDetail = 1;
+  let seed = (Math.random() * 0xffffffff) >>> 0;
+  let W = 0, H = 0, DPR = 1;
+  let memoryBank = [];
+  let memoryInfluence = 0;
+
+  const SYSTEMS = [
+    { id: 'chest', name: 'Chest', sigma: 0.42 },
+    { id: 'limbs', name: 'Limbs', sigma: 0.50 },
+    { id: 'foundation', name: 'Foundation', sigma: 0.45 },
+    { id: 'core', name: 'Core', sigma: 0.55 },
+    { id: 'vitality', name: 'Vitality', sigma: 0.50 },
+    { id: 'posture', name: 'Posture', sigma: 0.55 },
+  ];
+  const condRefs = {};
+
+  function renderConditions() {
+    const el = document.getElementById('conditions');
+    el.innerHTML = '';
+    SYSTEMS.forEach(function (s) {
+      const row = document.createElement('div'); row.className = 'cond-row';
+      const head = document.createElement('div'); head.className = 'cond-head';
+      const name = document.createElement('span'); name.className = 'name'; name.textContent = s.name;
+      const sig = document.createElement('span'); sig.className = 'sigma'; sig.textContent = 'sigma=' + s.sigma.toFixed(2);
+      head.append(name, sig);
+      const input = document.createElement('input');
+      input.type = 'range'; input.min = '0'; input.max = '1'; input.step = '0.01'; input.value = s.sigma;
+      input.addEventListener('input', function () { s.sigma = +input.value; regenerate(); });
+      row.append(head, input);
+      el.appendChild(row);
+      condRefs[s.id] = { sig, input, def: s };
+    });
+  }
+  function sigmaOf(id) { return condRefs[id].def.sigma; }
+
+  // --- Case-based blend: pull the rendered value toward the nearest saved
+  // corrections in σ-space. At influence=0 this is a no-op (pure sliders).
+  // Above 0, the SAME slider values render differently depending on what's
+  // been saved to the gallery. ---
+  function currentSigmaVector() {
+    const v = {};
+    SYSTEMS.forEach(function (s) { v[s.id] = s.sigma; });
+    return v;
+  }
+  function sigmaDistance(a, b) {
+    let sum = 0;
+    SYSTEMS.forEach(function (s) { const d = (a[s.id] || 0) - (b[s.id] || 0); sum += d * d; });
+    return Math.sqrt(sum);
+  }
+  function blendedSigma(id) {
+    const raw = sigmaOf(id);
+    if (memoryInfluence <= 0 || memoryBank.length === 0) return raw;
+    const current = currentSigmaVector();
+    const withDist = memoryBank
+      .filter(function (m) { return m && m.state && m.state.sigma; })
+      .map(function (m) { return { sigma: m.state.sigma, d: sigmaDistance(current, m.state.sigma) }; });
+    if (!withDist.length) return raw;
+    withDist.sort(function (a, b) { return a.d - b.d; });
+    const top = withDist.slice(0, Math.min(3, withDist.length));
+    let wSum = 0, valSum = 0;
+    top.forEach(function (t) {
+      const w = 1 / (t.d + 0.05);
+      wSum += w;
+      valSum += w * (t.sigma[id] != null ? t.sigma[id] : raw);
+    });
+    const neighborAvg = wSum > 0 ? valSum / wSum : raw;
+    return lerp(raw, neighborAvg, memoryInfluence);
+  }
+
+  function syncConditionReadouts() {
+    let sum = 0;
+    SYSTEMS.forEach(function (s) {
+      const r = condRefs[s.id];
+      const eff = blendedSigma(s.id);
+      const showEff = memoryInfluence > 0 && memoryBank.length > 0 && Math.abs(eff - s.sigma) > 0.005;
+      r.sig.textContent = showEff ? ('sigma=' + s.sigma.toFixed(2) + ' -> ' + eff.toFixed(2)) : ('sigma=' + s.sigma.toFixed(2));
+      r.sig.classList.toggle('high', eff >= 0.6);
+      sum += s.sigma;
+    });
+    vals.mean.textContent = (sum / SYSTEMS.length).toFixed(3);
+  }
+
+  let jitterRand = mulberry32(seed);
+  const jitterCache = {};
+  function jitter(key) { if (!(key in jitterCache)) jitterCache[key] = jitterRand() * 2 - 1; return jitterCache[key]; }
+
+  function capsulePath(x1, y1, x2, y2, r1, r2) {
+    const angle = Math.atan2(y2 - y1, x2 - x1);
+    const p = new Path2D();
+    p.arc(x1, y1, r1, angle + Math.PI / 2, angle - Math.PI / 2, true);
+    p.arc(x2, y2, r2, angle - Math.PI / 2, angle + Math.PI / 2, true);
+    p.closePath();
+    return p;
+  }
+
+  function drawCracks(rect, count, depth, rng, alphaScale) {
+    const segs = []; const cap = 900; let total = 0;
+    for (let k = 0; k < count; k++) {
+      const sx = rect.x + rng() * rect.w, sy = rect.y + rng() * rect.h;
+      (function grow(x, y, a, d) {
+        const step = 3 + rng() * 4;
+        for (let s = 0; s < 6 && total < cap; s++) {
+          const na = a + (rng() - 0.5) * 0.9;
+          const nx = x + Math.cos(na) * step, ny = y + Math.sin(na) * step;
+          segs.push([x, y, nx, ny, d]); total++;
+          x = nx; y = ny; a = na;
+          if (d < depth && rng() < 0.22) grow(x, y, a + (rng() - 0.5) * 1.4, d + 1);
+        }
+      })(sx, sy, rng() * Math.PI * 2, 0);
+    }
+    for (const [x1, y1, x2, y2, d] of segs) {
+      ctx.strokeStyle = rgba(CRACK_INK, (0.55 - d * 0.12) * alphaScale);
+      ctx.lineWidth = Math.max(0.5, 1.5 - d * 0.35);
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    }
+  }
+
+  function fillNoiseTint(rect, noiseFn, colorGood, colorBad, sigma, scale) {
+    const cell = 5;
+    const volCx = rect.x + rect.w / 2, volCy = rect.y + rect.h / 2;
+    const volRx = Math.max(rect.w / 2, 1), volRy = Math.max(rect.h / 2, 1);
+    for (let yy = rect.y; yy < rect.y + rect.h; yy += cell) {
+      for (let xx = rect.x; xx < rect.x + rect.w; xx += cell) {
+        const n = noiseFn(xx * scale, yy * scale);
+        const flatBias = clamp((1 - sigma) * 0.5, 0, 1);
+        const noisyBias = clamp(n * 0.6 + (1 - sigma) * 0.5, 0, 1);
+        const bias = lerp(flatBias, noisyBias, renderDetail);
+        let c = mixRgb(colorGood, colorBad, bias);
+        const sh = shadeAt(xx, yy, volCx, volCy, volRx, volRy);
+        const diffuseMul = lerp(1, sh.diffuse, renderDetail);
+        c = [c[0] * diffuseMul, c[1] * diffuseMul, c[2] * diffuseMul];
+        ctx.fillStyle = rgba(c, 0.5);
+        ctx.fillRect(xx, yy, cell, cell);
+        const spec = sh.spec * renderDetail;
+        if (spec > 0.1) {
+          ctx.save();
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.fillStyle = rgba(SPARK, spec * 0.45);
+          ctx.fillRect(xx, yy, cell, cell);
+          ctx.restore();
+        }
+      }
+    }
+  }
+
+  function regionRect(x, y, w, h) { return { x, y, w, h }; }
+
+  function withClip(path, rect, drawFn) {
+    ctx.save();
+    ctx.clip(path);
+    if (rect) { ctx.beginPath(); ctx.rect(rect.x, rect.y, rect.w, rect.h); ctx.clip(); }
+    drawFn();
+    ctx.restore();
+  }
+
+  function render() {
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#0d2745';
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.save();
+    if (ctx.filter !== undefined) ctx.filter = 'blur(2.5px)';
+    ctx.strokeStyle = 'rgba(29,63,102,0.55)'; ctx.lineWidth = 1;
+    for (let gx = 0; gx < W; gx += 28) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
+    for (let gy = 0; gy < H; gy += 28) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); }
+    ctx.restore();
+
+    const postureSigma = blendedSigma('posture');
+    const asym = (1 - postureSigma) * 0.10;
+    vals.asym.textContent = asym.toFixed(3);
+
+    // Detail also governs how far shape pulls from the neutral canon
+    // toward whatever the viewer set - same fade as Tone/Warmth.
+    const NEUTRAL_TAPER = 0.68, NEUTRAL_LIMB = 1.00, NEUTRAL_SHIFT = 0;
+    const taper = lerp(NEUTRAL_TAPER, +els.taper.value, renderDetail);
+    const limbMul = lerp(NEUTRAL_LIMB, +els.limb.value, renderDetail);
+    const shift = lerp(NEUTRAL_SHIFT, +els.shift.value, renderDetail);
+
+    // Fit an 8-head figure into the stage with margin.
+    const marginY = H * 0.06;
+    const availH = H - marginY * 2;
+    const availW = W * 0.9;
+    const unit = Math.min(availH / 8, availW / 2.3);
+    const cx = W / 2 + jitter('lean') * asym * unit * 0.6 + shift * unit * 0.18;
+    const top = marginY + (H - marginY * 2 - unit * 8) / 2;
+    const Y = (u) => top + u * unit;
+
+    const hipShift = shift * unit * 0.22;
+    const shoulderShift = -shift * unit * 0.14;
+
+    // --- Landmarks (canon fixed, blend + jitter applied) ---
+    const shoulderW = unit * 1.05, chestW = unit * 0.92 * (0.6 + taper * 0.5), waistW = unit * 0.62 * taper, hipW = unit * 0.86;
+    const asymL = 1 + jitter('sideL') * asym, asymR = 1 + jitter('sideR') * asym;
+
+    const shoulderY = Y(CANON_Y.shoulder), chestY = Y(CANON_Y.chest), waistY = Y(CANON_Y.waist), hipY = Y(CANON_Y.hip);
+    const shoulderLX = cx + shoulderShift - shoulderW * asymL, shoulderRX = cx + shoulderShift + shoulderW * asymR;
+    const hipLX = cx + hipShift - hipW * 0.5 * asymL, hipRX = cx + hipShift + hipW * 0.5 * asymR;
+
+    // Torso silhouette (shoulder -> chest -> waist -> hip), one closed path.
+    const torso = new Path2D();
+    torso.moveTo(shoulderLX, shoulderY);
+    torso.quadraticCurveTo(cx - chestW * asymL, chestY, cx - waistW * asymL, waistY);
+    torso.quadraticCurveTo(cx - hipW * 0.55 * asymL, (waistY + hipY) / 2, hipLX, hipY);
+    torso.lineTo(hipRX, hipY);
+    torso.quadraticCurveTo(cx + hipW * 0.55 * asymR, (waistY + hipY) / 2, cx + waistW * asymR, waistY);
+    torso.quadraticCurveTo(cx + chestW * asymR, chestY, shoulderRX, shoulderY);
+    torso.closePath();
+
+    // Head
+    const headR = unit * 0.34;
+    const headCX = cx + jitter('headTilt') * asym * unit * 0.3;
+    const headCY = Y(CANON_Y.crown) + headR * 1.02;
+
+    // Neck
+    const neck = new Path2D();
+    neck.rect(cx - unit * 0.14, Y(CANON_Y.chin) - 2, unit * 0.28, shoulderY - Y(CANON_Y.chin) + 4);
+
+    // Legs (hip -> knee -> heel), two segments each, capsule shapes.
+    const legTopR = unit * 0.19, kneeR = unit * 0.13, ankleR = unit * 0.08;
+    const legIn = 1 - limbMul * 0 + 0; // placeholder for readability
+    function legPath(side) {
+      const hx = side < 0 ? hipLX + hipW * 0.12 * asymL : hipRX - hipW * 0.12 * asymR;
+      const kx = cx + side * unit * 0.28 * limbMul + jitter('knee' + side) * asym * unit * 0.3;
+      const ky = Y(CANON_Y.knee * (2 - limbMul));
+      const ax = cx + side * unit * 0.22 * limbMul + jitter('ankle' + side) * asym * unit * 0.3;
+      const ay = Y(CANON_Y.heel * (2 - limbMul)) - ankleR * 0.6;
+      const upper = capsulePath(hx, hipY, kx, ky, legTopR, kneeR);
+      const lower = capsulePath(kx, ky, ax, ay, kneeR, ankleR);
+      return { upper, lower, ax, ay, side };
+    }
+    const legL = legPath(-1), legR = legPath(1);
+
+    // Arms (shoulder -> elbow -> wrist), two segments each.
+    const armTopR = unit * 0.13, elbowR = unit * 0.09, wristR = unit * 0.065;
+    function armPath(side) {
+      const sx = side < 0 ? shoulderLX : shoulderRX;
+      const ex = sx + side * unit * 0.10 * limbMul + jitter('elbow' + side) * asym * unit * 0.25;
+      const ey = Y(CANON_Y.elbow * (2 - limbMul) + 0.0);
+      const wx = ex + side * unit * 0.06 * limbMul + jitter('wrist' + side) * asym * unit * 0.25;
+      const wy = Y(CANON_Y.wrist * (2 - limbMul));
+      const upper = capsulePath(sx, shoulderY, ex, ey, armTopR, elbowR);
+      const lower = capsulePath(ex, ey, wx, wy, elbowR, wristR);
+      return { upper, lower, wx, wy, side };
+    }
+    const armL = armPath(-1), armR = armPath(1);
+
+    const rand = mulberry32(seed ^ 0x51ed270b);
+    const noise = makeNoise2D(rand);
+
+    // base tissue tone across the whole figure - shaded as one coherently
+    // lit volume (a real body has one light source, not one per limb),
+    // so the coherence-tinted regions (locally shaded, see fillNoiseTint)
+    // sit on top of a figure that already reads as lit, not flat.
+    // detail=0 -> neutral cyanotype wash; rising detail blends toward
+    // whatever tone/warmth the viewer set for themselves. Same reasoning
+    // as Invariant Face: self-representation, not a computed average.
+    const skinRgb = userToneRgb(+els.tone.value, +els.warmth.value);
+    const bodyBaseRgb = [lerp(220, skinRgb[0], renderDetail), lerp(232, skinRgb[1], renderDetail), lerp(242, skinRgb[2], renderDetail)];
+    const bodyBaseAlpha = lerp(0.1, 0.8, renderDetail);
+    const bodyCx = cx, bodyCy = top + unit * 4, bodyRx = unit * 1.15, bodyRy = unit * 4;
+    const bodyCell = 6;
+    [torso, neck, legL.upper, legL.lower, legR.upper, legR.lower, armL.upper, armL.lower, armR.upper, armR.lower].forEach(function (p) {
+      ctx.save(); ctx.clip(p);
+      for (let yy = top; yy < top + unit * 8; yy += bodyCell) {
+        for (let xx = cx - unit * 1.5; xx < cx + unit * 1.5; xx += bodyCell) {
+          const sh = shadeAt(xx, yy, bodyCx, bodyCy, bodyRx, bodyRy);
+          const diffuseMul = lerp(1, sh.diffuse, renderDetail);
+          ctx.fillStyle = rgba([bodyBaseRgb[0] * diffuseMul, bodyBaseRgb[1] * diffuseMul, bodyBaseRgb[2] * diffuseMul], bodyBaseAlpha);
+          ctx.fillRect(xx, yy, bodyCell, bodyCell);
+          const spec = sh.spec * renderDetail;
+          if (spec > 0.12) {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.fillStyle = rgba(SPARK, spec * 0.3);
+            ctx.fillRect(xx, yy, bodyCell, bodyCell);
+            ctx.restore();
+          }
+        }
+      }
+      ctx.restore();
+    });
+    ctx.save(); ctx.beginPath(); ctx.arc(headCX, headCY, headR, 0, Math.PI * 2); ctx.clip();
+    for (let yy = headCY - headR; yy < headCY + headR; yy += bodyCell) {
+      for (let xx = headCX - headR; xx < headCX + headR; xx += bodyCell) {
+        const sh = shadeAt(xx, yy, headCX, headCY, headR, headR);
+        const diffuseMul = lerp(1, sh.diffuse, renderDetail);
+        ctx.fillStyle = rgba([bodyBaseRgb[0] * diffuseMul, bodyBaseRgb[1] * diffuseMul, bodyBaseRgb[2] * diffuseMul], bodyBaseAlpha);
+        ctx.fillRect(xx, yy, bodyCell, bodyCell);
+        const spec = sh.spec * renderDetail;
+        if (spec > 0.12) {
+          ctx.save();
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.fillStyle = rgba(SPARK, spec * 0.35);
+          ctx.fillRect(xx, yy, bodyCell, bodyCell);
+          ctx.restore();
+        }
+      }
+    }
+    ctx.restore();
+
+    // Chest band
+    const chestSigma = blendedSigma('chest');
+    withClip(torso, regionRect(cx - shoulderW * 1.1, shoulderY, shoulderW * 2.2, chestY - shoulderY + 6), function () {
+      fillNoiseTint(regionRect(cx - shoulderW * 1.1, shoulderY, shoulderW * 2.2, chestY - shoulderY + 6), noise, COHERENT, FRACTURE, chestSigma, 0.06);
+      drawCracks(regionRect(cx - shoulderW, shoulderY, shoulderW * 2, chestY - shoulderY + 4), Math.round((1 - chestSigma) * 5) + 1, 2, mulberry32(seed + 11), renderDetail);
+    });
+
+    // Core (waist to hip)
+    const coreSigma = blendedSigma('core');
+    withClip(torso, regionRect(cx - waistW * 1.3, chestY, waistW * 2.6, hipY - chestY + 6), function () {
+      const cool = mixRgb(COHERENT, [79, 180, 255], 0.5);
+      fillNoiseTint(regionRect(cx - waistW * 1.3, chestY, waistW * 2.6, hipY - chestY + 6), noise, cool, FRACTURE, coreSigma, 0.07);
+      drawCracks(regionRect(cx - waistW * 1.1, chestY, waistW * 2.2, hipY - chestY + 4), Math.round((1 - coreSigma) * 5) + 1, 2, mulberry32(seed + 31), 0.9 * renderDetail);
+    });
+
+    // Vitality -> solar plexus glow
+    const vitalitySigma = blendedSigma('vitality');
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    const glowColor = mixRgb(FRACTURE, SPARK, vitalitySigma);
+    const glowY = (chestY + waistY) / 2;
+    const grad = ctx.createRadialGradient(cx, glowY, 0, cx, glowY, unit * 0.7);
+    grad.addColorStop(0, rgba(glowColor, 0.5 + vitalitySigma * 0.35));
+    grad.addColorStop(1, rgba(glowColor, 0));
+    ctx.fillStyle = grad;
+    ctx.beginPath(); ctx.arc(cx, glowY, unit * 0.7, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+
+    // Limbs -> arms
+    const limbsSigma = blendedSigma('limbs');
+    [armL, armR].forEach(function (arm, i) {
+      const bbox = regionRect(Math.min(arm.upper._x1 || 0, 0), shoulderY - 4, unit * 1.4, arm.wy - shoulderY + unit * 0.2);
+      [arm.upper, arm.lower].forEach(function (seg) {
+        withClip(seg, regionRect(cx - shoulderW * 2, shoulderY - 4, shoulderW * 4, arm.wy - shoulderY + unit * 0.3), function () {
+          fillNoiseTint(regionRect(cx - shoulderW * 2, shoulderY - 4, shoulderW * 4, arm.wy - shoulderY + unit * 0.3), noise, COHERENT, FRACTURE, limbsSigma, 0.08);
+        });
+      });
+      drawCracks(regionRect(cx + arm.side * shoulderW * 1.5 - unit * 0.3, shoulderY, unit * 0.6, arm.wy - shoulderY), Math.round((1 - limbsSigma) * 3) + 1, 2, mulberry32(seed + 51 + i), 0.85 * renderDetail);
+      void bbox;
+    });
+
+    // Foundation -> legs
+    const foundationSigma = blendedSigma('foundation');
+    [legL, legR].forEach(function (leg, i) {
+      [leg.upper, leg.lower].forEach(function (seg) {
+        withClip(seg, regionRect(cx - hipW * 2, hipY - 4, hipW * 4, leg.ay - hipY + unit * 0.3), function () {
+          const earth = mixRgb(FRACTURE, [110, 84, 52], 0.4);
+          fillNoiseTint(regionRect(cx - hipW * 2, hipY - 4, hipW * 4, leg.ay - hipY + unit * 0.3), noise, COHERENT, earth, foundationSigma, 0.06);
+        });
+      });
+      drawCracks(regionRect(cx + leg.side * unit * 0.3 - unit * 0.35, hipY, unit * 0.7, leg.ay - hipY), Math.round((1 - foundationSigma) * 6) + 2, 3, mulberry32(seed + 71 + i), renderDetail);
+    });
+
+    // Ink outlines over the tinted fills
+    ctx.save();
+    ctx.strokeStyle = 'rgba(220,232,242,0.85)'; ctx.lineWidth = 1.4;
+    [torso, neck].forEach(function (p) { ctx.stroke(p); });
+    [legL.upper, legL.lower, legR.upper, legR.lower, armL.upper, armL.lower, armR.upper, armR.lower].forEach(function (p) { ctx.stroke(p); });
+    ctx.beginPath(); ctx.arc(headCX, headCY, headR, 0, Math.PI * 2); ctx.stroke();
+    ctx.restore();
+
+    // hands / feet marks
+    ctx.save(); ctx.fillStyle = 'rgba(220,232,242,0.85)';
+    [armL, armR].forEach(function (a) { ctx.beginPath(); ctx.ellipse(a.wx, a.wy + unit * 0.05, unit * 0.07, unit * 0.1, 0, 0, Math.PI * 2); ctx.fill(); });
+    [legL, legR].forEach(function (l) { ctx.beginPath(); ctx.ellipse(l.ax + l.side * unit * 0.08, l.ay + unit * 0.02, unit * 0.16, unit * 0.06, 0, 0, Math.PI * 2); ctx.fill(); });
+    ctx.restore();
+
+    // Construction lines
+    if (showCanonEl.checked) {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255,233,184,0.5)'; ctx.setLineDash([5, 4]); ctx.lineWidth = 1;
+      ctx.font = '9px "IBM Plex Mono", monospace'; ctx.fillStyle = 'rgba(255,233,184,0.75)';
+      const guides = [
+        [Y(0), 'CROWN · 0h'], [Y(1), 'CHIN · 1h'], [Y(2), 'CHEST · 2h'], [Y(3), 'WAIST · 3h'],
+        [Y(4), 'HIP · 4h (center)'], [Y(6), 'KNEE · 6h'], [Y(8), 'HEEL · 8h'],
+      ];
+      guides.forEach(function (g) {
+        ctx.beginPath(); ctx.moveTo(cx - unit * 1.3, g[0]); ctx.lineTo(cx + unit * 1.3, g[0]); ctx.stroke();
+        ctx.fillText(g[1], cx + unit * 1.34, g[0] + 3);
+      });
+      ctx.setLineDash([]);
+      ctx.strokeStyle = 'rgba(255,233,184,0.4)';
+      ctx.beginPath(); ctx.moveTo(cx, Y(0) - unit * 0.4); ctx.lineTo(cx, Y(8)); ctx.stroke();
+      ctx.fillText('midline', cx + 4, Y(0) - unit * 0.4 + 9);
+      ctx.restore();
+    }
+
+    // Film grain overlay, same technique as Invariant Face.
+    if (!grainPattern) buildGrainPattern();
+    if (grainPattern && renderDetail > 0.02) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'overlay';
+      ctx.globalAlpha = 0.06 * renderDetail;
+      ctx.fillStyle = grainPattern;
+      ctx.fillRect(0, 0, W, H);
+      ctx.restore();
+    }
+  }
+
+  function syncReadouts() {
+    vals.taper.textContent = (+els.taper.value).toFixed(2);
+    vals.limb.textContent = (+els.limb.value).toFixed(2);
+    vals.shift.textContent = (+els.shift.value >= 0 ? '+' : '') + (+els.shift.value).toFixed(2);
+    vals.seed.textContent = (seed >>> 0).toString(16).padStart(8, '0');
+    renderDetail = +els.detail.value;
+    vals.detail.textContent = renderDetail.toFixed(2);
+    vals.tone.textContent = (+els.tone.value).toFixed(2);
+    vals.warmth.textContent = (+els.warmth.value).toFixed(2);
+  }
+
+  function regenerate() { syncConditionReadouts(); syncReadouts(); render(); }
+
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    const rect = stage.getBoundingClientRect();
+    W = rect.width; H = rect.height;
+    canvas.width = Math.max(1, W * DPR);
+    canvas.height = Math.max(1, H * DPR);
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    regenerate();
+  }
+
+  let resizeT;
+  window.addEventListener('resize', function () { clearTimeout(resizeT); resizeT = setTimeout(resize, 120); });
+
+  renderConditions();
+  Object.values(els).forEach(function (el) { el.addEventListener('input', regenerate); });
+  showCanonEl.addEventListener('change', regenerate);
+  document.getElementById('regen').addEventListener('click', function () {
+    seed = (Math.random() * 0xffffffff) >>> 0;
+    jitterRand = mulberry32(seed);
+    for (const k in jitterCache) delete jitterCache[k];
+    regenerate();
+  });
+
+  function serializeState() {
+    const s = {
+      v: 1, seed: seed, taper: +els.taper.value, limb: +els.limb.value, shift: +els.shift.value,
+      detail: +els.detail.value, tone: +els.tone.value, warmth: +els.warmth.value,
+      canon: showCanonEl.checked, sigma: {},
+    };
+    SYSTEMS.forEach(function (sys) { s.sigma[sys.id] = sys.sigma; });
+    return s;
+  }
+  function applyState(state) {
+    if (!state) return;
+    seed = (state.seed >>> 0) || seed;
+    jitterRand = mulberry32(seed);
+    for (const k in jitterCache) delete jitterCache[k];
+    if (state.taper != null) els.taper.value = state.taper;
+    if (state.limb != null) els.limb.value = state.limb;
+    if (state.shift != null) els.shift.value = state.shift;
+    els.detail.value = state.detail != null ? state.detail : 1;
+    els.tone.value = state.tone != null ? state.tone : 0.5;
+    els.warmth.value = state.warmth != null ? state.warmth : 0.5;
+    if (state.canon != null) showCanonEl.checked = !!state.canon;
+    if (state.sigma) SYSTEMS.forEach(function (sys) { if (state.sigma[sys.id] != null) sys.sigma = state.sigma[sys.id]; });
+    renderConditions();
+    regenerate();
+  }
+  function decodeStateFromHash() {
+    const h = window.location.hash;
+    if (!h || h.indexOf('#s=') !== 0) return null;
+    try { return JSON.parse(decodeURIComponent(h.slice(3))); } catch (e) { return null; }
+  }
+  document.getElementById('shareBtn').addEventListener('click', function () {
+    const encoded = encodeURIComponent(JSON.stringify(serializeState()));
+    window.location.hash = 's=' + encoded;
+    const url = window.location.origin + window.location.pathname + window.location.search + '#s=' + encoded;
+    const flash = document.getElementById('shareFlash');
+    (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject())
+      .then(function () { flash.textContent = 'Link copied — same seed, same figure for anyone who opens it.'; })
+      .catch(function () { flash.textContent = 'Could not copy automatically — URL updated in the address bar.'; });
+    setTimeout(function () { flash.textContent = ''; }, 4500);
+  });
+
+  // --- Shared correction gallery via the db capability, when granted ---
+  async function initGallery() {
+    if (!window.claude || typeof window.claude.use !== 'function') return;
+    let db = null;
+    try { db = await window.claude.use('db'); } catch (e) { db = null; }
+    if (!db) return; // not granted in this view — share links above still work for everyone
+
+    document.getElementById('gallery-group').hidden = false;
+    const noteEl = document.getElementById('galleryNote');
+    const saveBtn = document.getElementById('saveBtn');
+    const saveFlash = document.getElementById('saveFlash');
+    const listEl = document.getElementById('galleryList');
+    const memEl = document.getElementById('memInfluence');
+    const memVal = document.getElementById('v-mem');
+
+    memEl.addEventListener('input', function () {
+      memoryInfluence = +memEl.value;
+      memVal.textContent = memoryInfluence.toFixed(2);
+      regenerate();
+    });
+
+    saveBtn.addEventListener('click', async function () {
+      const note = noteEl.value.trim();
+      if (!note) {
+        saveFlash.textContent = 'Add a note describing the correction first.';
+        setTimeout(function () { saveFlash.textContent = ''; }, 3000);
+        return;
+      }
+      saveBtn.disabled = true;
+      try {
+        await db.collection('gallery').add({ state: serializeState(), note: note, createdAt: new Date().toISOString() });
+        noteEl.value = '';
+        saveFlash.textContent = 'Saved.';
+      } catch (e) {
+        saveFlash.textContent = 'Could not save: ' + (e && e.code ? e.code : 'unknown error');
+      }
+      saveBtn.disabled = false;
+      setTimeout(function () { saveFlash.textContent = ''; }, 3000);
+    });
+
+    db.collection('gallery').orderBy('createdAt', 'desc').limit(30).onSnapshot(
+      function (snap) {
+        memoryBank = snap.docs.map(function (doc) { return doc.data(); }).filter(function (d) { return d && d.state && d.state.sigma; });
+        regenerate();
+
+        if (snap.empty) { listEl.innerHTML = '<div class="gallery-empty">No saved corrections yet.</div>'; return; }
+        listEl.innerHTML = '';
+        snap.docs.forEach(function (doc) {
+          const data = doc.data();
+          if (!data || !data.state) return;
+          const item = document.createElement('div');
+          item.className = 'gallery-item';
+          const noteText = document.createElement('div'); noteText.className = 'note-text'; noteText.textContent = data.note || '(no note)';
+          const metaRow = document.createElement('div'); metaRow.className = 'meta-row';
+          const when = document.createElement('span'); when.textContent = data.createdAt ? new Date(data.createdAt).toLocaleString() : '';
+          const loadBtn = document.createElement('button'); loadBtn.textContent = 'Load';
+          loadBtn.addEventListener('click', function () { applyState(data.state); });
+          metaRow.append(when, loadBtn);
+          item.append(noteText, metaRow);
+          listEl.appendChild(item);
+        });
+      },
+      function (err) {
+        listEl.innerHTML = '<div class="gallery-empty">Gallery unavailable (' + err.code + ').</div>';
+      }
+    );
+  }
+
+  // --- "Describe yourself" via the real sample capability, when granted.
+  // Maps text onto ONLY the parameters that already exist below - it
+  // cannot add anything this renderer has no slider for. ---
+  async function initDescribe() {
+    if (!window.claude || typeof window.claude.use !== 'function') return;
+    let sampleFn = null;
+    try { sampleFn = await window.claude.use('sample'); } catch (e) { sampleFn = null; }
+    if (!sampleFn) return;
+
+    document.getElementById('describe-group').hidden = false;
+    const input = document.getElementById('describeInput');
+    const btn = document.getElementById('describeBtn');
+    const flash = document.getElementById('describeFlash');
+
+    const SCHEMA_HINT = [
+      'taper: number 0.45-0.92 (0.68 default; torso build - lower = slim/V-shaped, higher = broad/rectangular)',
+      'limb: number 0.85-1.15 (1.0 default; limb length proportion - lower = shorter limbs, higher = longer)',
+      'tone: number 0-1 (0.5 default/midpoint; 0 = lightest end of the tone scale, 1 = deepest end - include only if skin tone/complexion is actually described)',
+      'warmth: number 0-1 (0.5 default; skin undertone, 0 = cool, 1 = warm - include only if described)',
+    ].join('\n');
+
+    btn.addEventListener('click', async function () {
+      const desc = input.value.trim();
+      if (!desc) {
+        flash.textContent = 'Describe something first.';
+        setTimeout(function () { flash.textContent = ''; }, 3000);
+        return;
+      }
+      btn.disabled = true;
+      flash.textContent = 'Thinking…';
+      try {
+        const prompt = 'You map a short self-description onto a fixed numeric slider schema for a parametric line-drawing generator. ' +
+          'The generator supports ONLY these parameters:\n' + SCHEMA_HINT +
+          '\n\nInfer a value ONLY for what the description actually implies - omit any key you cannot reasonably infer, do not guess to fill every key. ' +
+          'Reply with ONLY a JSON object using a subset of these keys, no prose, no code fence.\n\nDescription: "' + desc.replace(/"/g, "'") + '"';
+        const data = await sampleFn.json(prompt, { modelTier: 'quick', cache: false });
+        const applied = [];
+        if (data && typeof data === 'object') {
+          if (typeof data.taper === 'number') { els.taper.value = clamp(data.taper, 0.45, 0.92); applied.push('taper'); }
+          if (typeof data.limb === 'number') { els.limb.value = clamp(data.limb, 0.85, 1.15); applied.push('limb'); }
+          if (typeof data.tone === 'number') { els.tone.value = clamp(data.tone, 0, 1); applied.push('tone'); }
+          if (typeof data.warmth === 'number') { els.warmth.value = clamp(data.warmth, 0, 1); applied.push('warmth'); }
+        }
+        if (applied.length) {
+          regenerate();
+          flash.textContent = 'Set: ' + applied.join(', ') + '.';
+        } else {
+          flash.textContent = 'Nothing in that mapped to a slider that exists.';
+        }
+      } catch (e) {
+        const code = e && e.code;
+        if (code === 'not_granted' || code === 'sampling_disabled' || code === 'not_declared' || code === 'capability_disabled') {
+          document.getElementById('describe-group').hidden = true;
+        } else if (code === 'invalid_json') {
+          flash.textContent = 'Could not parse a reply - try rephrasing.';
+        } else if (code === 'rate_limited') {
+          flash.textContent = 'Rate limited - try again in a moment.';
+        } else {
+          flash.textContent = 'Could not generate: ' + (code || 'unknown error');
+        }
+      }
+      btn.disabled = false;
+      setTimeout(function () { flash.textContent = ''; }, 5000);
+    });
+  }
+
+  const sharedState = decodeStateFromHash();
+  if (sharedState) applyState(sharedState);
+  resize();
+  initGallery();
+  initDescribe();
+})();
+</script>
+</body>
+</html>
